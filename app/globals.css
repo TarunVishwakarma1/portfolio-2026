@@ -1,41 +1,235 @@
+/* app/globals.css */
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg:          #060606;
+  --fg:          #edeae3;
+  --fg-dim:      rgba(237, 234, 227, 0.42);
+  --fg-muted:    rgba(237, 234, 227, 0.12);
+  --border:      rgba(237, 234, 227, 0.10);
+  --accent:      #D4A853;
+  --accent-dim:  rgba(212, 168, 83, 0.25);
+  --ease-expo:   cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-elastic: cubic-bezier(0.625, 0.05, 0, 1);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+html { scroll-behavior: auto; } /* Lenis handles smooth scroll — disable native */
 
 body {
-  background: linear-gradient(-45deg, #000000, #1a1a1a, #000000, #0f0f0f);
-  background-size: 400% 400%;
-  animation: gradientBG 15s ease infinite;
-  color: #ededed;
-  font-family: Arial, Helvetica, sans-serif;
-  min-height: 100vh;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-geist-mono), 'Courier New', monospace;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  cursor: none; /* custom cursor replaces default */
 }
 
-@keyframes gradientBG {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
+/* ── Grain overlay ── */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 8000;
+  opacity: 0.032;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+}
+
+/* ── Custom cursor ── */
+.cursor-dot {
+  position: fixed;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--fg);
+  pointer-events: none;
+  z-index: 9999;
+  mix-blend-mode: difference;
+  transform: translate(-50%, -50%);
+  transition: width 0.25s var(--ease-expo),
+              height 0.25s var(--ease-expo),
+              background 0.25s;
+  will-change: transform;
+}
+.cursor-dot.cursor-hover {
+  width: 36px;
+  height: 36px;
+  background: var(--fg);
+}
+
+/* ── Font helpers ── */
+.font-display {
+  font-family: var(--font-cormorant), 'Georgia', serif;
+}
+
+/* ── Full-screen menu overlay ── */
+.menu-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 150;
+  display: flex;
+  flex-direction: column;
+  padding: 7rem 6vw 4rem;
+  pointer-events: none;
+  clip-path: circle(0% at calc(100% - 52px) 52px);
+  transition: clip-path 0.75s var(--ease-expo);
+}
+.menu-overlay.open {
+  clip-path: circle(180% at calc(100% - 52px) 52px);
+  pointer-events: all;
+}
+
+.menu-nav-label {
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  color: var(--fg-dim);
+  text-transform: uppercase;
+  opacity: 0;
+  transition: opacity 0.4s var(--ease-expo) 0.05s;
+  margin-bottom: 2.5rem;
+}
+.menu-overlay.open .menu-nav-label { opacity: 1; }
+
+.menu-nav-item {
+  font-family: var(--font-cormorant), 'Georgia', serif;
+  font-size: clamp(3rem, 7.5vw, 7rem);
+  font-weight: 300;
+  line-height: 1.05;
+  color: var(--fg);
+  text-decoration: none;
+  display: block;
+  opacity: 0;
+  transform: translateY(36px);
+  transition: opacity 0.55s var(--ease-expo),
+              transform 0.55s var(--ease-expo),
+              color 0.25s;
+}
+.menu-overlay.open .menu-nav-item { opacity: 1; transform: translateY(0); }
+.menu-nav-item:nth-child(1) { transition-delay: 0.08s, 0.08s, 0s; }
+.menu-nav-item:nth-child(2) { transition-delay: 0.13s, 0.13s, 0s; }
+.menu-nav-item:nth-child(3) { transition-delay: 0.18s, 0.18s, 0s; }
+.menu-nav-item:nth-child(4) { transition-delay: 0.23s, 0.23s, 0s; }
+.menu-nav-item:hover { color: var(--fg-dim); }
+
+.menu-footer {
+  margin-top: auto;
+  border-top: 1px solid var(--border);
+  padding-top: 1.75rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  opacity: 0;
+  transition: opacity 0.4s var(--ease-expo) 0.3s;
+}
+.menu-overlay.open .menu-footer { opacity: 1; }
+
+/* ── Hamburger bars ── */
+.ham-bar {
+  display: block;
+  width: 22px;
+  height: 1px;
+  background: var(--fg);
+  transition: transform 0.45s var(--ease-elastic), opacity 0.3s;
+}
+
+/* ── Section dividers ── */
+.section-hr {
+  border: none;
+  border-top: 1px solid var(--border);
+}
+
+/* ── Amber link underline ── */
+.link-amber {
+  position: relative;
+  display: inline-block;
+  text-decoration: none;
+  color: var(--fg);
+}
+.link-amber::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.45s var(--ease-expo);
+}
+.link-amber:hover::after { transform: scaleX(1); }
+.link-amber:hover { color: var(--accent); transition: color 0.25s; }
+
+/* ── Works horizontal strip ── */
+.works-strip {
+  display: flex;
+  align-items: stretch;
+  padding-left: 6vw;
+  gap: 1.5rem;
+  width: max-content;
+  will-change: transform;
+}
+
+/* ── Project card ── */
+.project-card {
+  width: 68vw;
+  max-width: 900px;
+  border: 1px solid var(--border);
+  padding: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  flex-shrink: 0;
+  transition: border-color 0.35s;
+  position: relative;
+  overflow: hidden;
+}
+.project-card:hover { border-color: rgba(237, 234, 227, 0.25); }
+.project-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(212, 168, 83, 0.025);
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+.project-card:hover::before { opacity: 1; }
+
+/* ── Skills grid ── */
+.skills-row {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+/* ── Scroll-triggered fade up — applied via GSAP ── */
+.reveal-line {
+  overflow: hidden;
+}
+.reveal-line-inner {
+  transform: translateY(100%);
+  opacity: 0;
+}
+
+/* ── Service card ── */
+.service-card {
+  border: 1px solid var(--border);
+  padding: 2.5rem;
+  transition: border-color 0.35s, background 0.35s;
+}
+.service-card:hover {
+  border-color: rgba(237, 234, 227, 0.25);
+  background: rgba(237, 234, 227, 0.02);
+}
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
   }
 }
