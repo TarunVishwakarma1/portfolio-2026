@@ -6,7 +6,7 @@ import gsap from "gsap";
 import ScrollTrigger from "gsap/ScrollTrigger";
 
 const stats = [
-  { value: 5, suffix: "+", label: "Years exp." },
+  { value: 4, suffix: "+", label: "Years exp." },
   { value: 30, suffix: "+", label: "Projects" },
   { value: null, symbol: "∞", label: "Curiosity" },
 ];
@@ -35,7 +35,7 @@ export default function AboutSection() {
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
 
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const reducedMotion = globalThis.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     if (reducedMotion) {
       gsap.set(headingLineRefs.current, { y: 0 });
@@ -153,7 +153,7 @@ export default function AboutSection() {
           }}
         >
           {HEADING_LINES.map((line, i) => (
-            <span key={i} style={{ display: "block", overflow: "hidden" }}>
+            <span key={"key_"+i} style={{ display: "block", overflow: "hidden" }}>
               <span
                 ref={(el) => { headingLineRefs.current[i] = el; }}
                 style={{
@@ -176,7 +176,7 @@ export default function AboutSection() {
           <p ref={para1Ref} style={{ fontSize: "0.85rem", lineHeight: 1.75, color: "var(--fg-dim)" }}>
             {PARA1_WORDS.map((word, i) => (
               <span
-                key={i}
+                key={"key_"+i}
                 style={{
                   display: "inline-block",
                   overflow: "hidden",
@@ -197,7 +197,7 @@ export default function AboutSection() {
           <p ref={para2Ref} style={{ fontSize: "0.85rem", lineHeight: 1.75, color: "var(--fg-dim)" }}>
             {PARA2_WORDS.map((word, i) => (
               <span
-                key={i}
+                key={"key_"+i}
                 style={{
                   display: "inline-block",
                   overflow: "hidden",

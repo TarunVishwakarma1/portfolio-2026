@@ -94,24 +94,19 @@ export default function CustomCursor() {
 
       dot.style.transform = `translate(calc(${dotX}px - 50%), calc(${dotY}px - 50%))`;
 
-      if (!hovering) {
-        // Direction-aware stretch: rotate ring along velocity vector
-        const speed   = Math.sqrt(velX * velX + velY * velY);
-        const angle   = Math.atan2(velY, velX);
-        const stretch = 1 + Math.min(speed * 0.028, 0.55);
-        const squish  = Math.max(1 / stretch, 0.55);
-        ring.style.transform =
-          `translate(calc(${ringX}px - 50%), calc(${ringY}px - 50%))` +
-          ` rotate(${angle}rad) scaleX(${stretch.toFixed(3)}) scaleY(${squish.toFixed(3)})`;
-      } else {
-        // Hovering: round ring, no stretch
-        ring.style.transform = `translate(calc(${ringX}px - 50%), calc(${ringY}px - 50%))`;
-      }
+      // Direction-aware stretch always applies — hover CSS class handles size change
+      const speed   = Math.sqrt(velX * velX + velY * velY);
+      const angle   = Math.atan2(velY, velX);
+      const stretch = 1 + Math.min(speed * 0.028, 0.55);
+      const squish  = Math.max(1 / stretch, 0.55);
+      ring.style.transform =
+        `translate(calc(${ringX}px - 50%), calc(${ringY}px - 50%))` +
+        ` rotate(${angle}rad) scaleX(${stretch.toFixed(3)}) scaleY(${squish.toFixed(3)})`;
 
       rafId = requestAnimationFrame(loop);
     };
 
-    window.addEventListener("mousemove", onMove);
+    globalThis.addEventListener("mousemove", onMove);
     rafId = requestAnimationFrame(loop);
     attachToAll();
 
