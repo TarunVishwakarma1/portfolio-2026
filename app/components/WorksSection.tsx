@@ -51,10 +51,11 @@ const SCALE = 1.5;
 const PARALLAX_PX = 200; // stays within 225px overflow budget (25px safety margin)
 
 export default function WorksSection() {
-  const containerRef  = useRef<HTMLElement>(null);
-  const stripRef      = useRef<HTMLDivElement>(null);
-  const labelRef      = useRef<HTMLDivElement>(null);
-  const imageRefs     = useRef<(HTMLImageElement | null)[]>([]);
+  const containerRef   = useRef<HTMLElement>(null);
+  const stripRef       = useRef<HTMLDivElement>(null);
+  const labelRef       = useRef<HTMLDivElement>(null);
+  const imageRefs      = useRef<(HTMLImageElement | null)[]>([]);
+  const cardRefs       = useRef<(HTMLElement | null)[]>([]);
   const progressBarRef = useRef<HTMLDivElement>(null);
   const [activeCard, setActiveCard] = useState(1);
   const [loadedImages, setLoadedImages] = useState<Record<number, boolean>>({});
@@ -68,7 +69,7 @@ export default function WorksSection() {
       const strip = stripRef.current!;
       const getScrollAmount = () => -(strip.scrollWidth - window.innerWidth);
 
-      gsap.to(strip, {
+      const mainTween = gsap.to(strip, {
         x: getScrollAmount,
         ease: "none",
         scrollTrigger: {
@@ -112,6 +113,27 @@ export default function WorksSection() {
           duration: 0.6,
           ease: "expo.out",
           scrollTrigger: { trigger: containerRef.current, start: "top 90%" },
+        });
+      }
+
+      // Title micro-reveal: each card's h2 slides up from mask as card enters view.
+      // containerAnimation lets ScrollTrigger understand horizontal scroll progress.
+      if (!reducedMotion && mainTween.scrollTrigger) {
+        cardRefs.current.forEach((card) => {
+          if (!card) return;
+          const titleEl = card.querySelector("h2");
+          if (!titleEl) return;
+          gsap.from(titleEl, {
+            y: "110%",
+            duration: 0.7,
+            ease: "expo.out",
+            scrollTrigger: {
+              trigger: card,
+              containerAnimation: mainTween.scrollTrigger!,
+              start: "left 88%",
+              toggleActions: "play none none none",
+            },
+          });
         });
       }
     }, containerRef);
@@ -237,7 +259,11 @@ export default function WorksSection() {
         onDragStart={(e) => e.preventDefault()}
       >
         {projects.map((project, idx) => (
-          <article key={project.id} className="project-card">
+          <article
+            key={project.id}
+            ref={(el) => { cardRefs.current[idx] = el; }}
+            className="project-card"
+          >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1.5rem" }}>
               <span style={{ fontSize: "0.68rem", letterSpacing: "0.15em", color: "var(--accent)", fontFamily: "var(--font-geist-mono), monospace" }}>
                 {project.id}
@@ -277,12 +303,15 @@ export default function WorksSection() {
               </div>
             </div>
 
-            <h2
-              className="font-display"
-              style={{ fontSize: "clamp(2.5rem, 5vw, 5rem)", fontWeight: 300, lineHeight: 0.93, letterSpacing: "-0.02em", marginBottom: "1.25rem" }}
-            >
-              {project.title}
-            </h2>
+            {/* overflow:hidden clips the translateY reveal */}
+            <div style={{ overflow: "hidden" }}>
+              <h2
+                className="font-display"
+                style={{ fontSize: "clamp(2.5rem, 5vw, 5rem)", fontWeight: 300, lineHeight: 0.93, letterSpacing: "-0.02em", marginBottom: "1.25rem" }}
+              >
+                {project.title}
+              </h2>
+            </div>
 
             <p style={{ fontSize: "0.82rem", color: "var(--fg-dim)", lineHeight: 1.7, maxWidth: "480px", marginBottom: "2rem", flex: 1 }}>
               {project.description}
