@@ -72,11 +72,22 @@ export default function WorksSection() {
 
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+    // Set h2 initial state for title reveal (before context so it's always applied)
+    if (!reducedMotion) {
+      cardRefs.current.forEach((card) => {
+        const titleEl = card?.querySelector("h2");
+        if (titleEl) gsap.set(titleEl, { y: "110%" });
+      });
+    }
+
+    // Track which titles have already revealed (survive re-renders)
+    const revealedTitles = new Set<number>();
+
     const ctx = gsap.context(() => {
       const strip = stripRef.current!;
       const getScrollAmount = () => -(strip.scrollWidth - window.innerWidth);
 
-      const mainTween = gsap.to(strip, {
+      gsap.to(strip, {
         x: getScrollAmount,
         ease: "none",
         scrollTrigger: {
@@ -95,6 +106,19 @@ export default function WorksSection() {
               imageRefs.current.forEach((img) => {
                 if (!img) return;
                 img.style.transform = `translateX(${shift}px) scale(${SCALE})`;
+              });
+
+              // Title micro-reveal: fire when card's left edge crosses 88% of viewport
+              cardRefs.current.forEach((card, idx) => {
+                if (!card || revealedTitles.has(idx)) return;
+                const rect = card.getBoundingClientRect();
+                if (rect.left < window.innerWidth * 0.88) {
+                  revealedTitles.add(idx);
+                  const titleEl = card.querySelector("h2");
+                  if (titleEl) {
+                    gsap.to(titleEl, { y: 0, duration: 0.7, ease: "expo.out" });
+                  }
+                }
               });
             }
 
@@ -120,27 +144,6 @@ export default function WorksSection() {
           duration: 0.6,
           ease: "expo.out",
           scrollTrigger: { trigger: containerRef.current, start: "top 90%" },
-        });
-      }
-
-      // Title micro-reveal: each card's h2 slides up from mask as card enters view.
-      // containerAnimation lets ScrollTrigger understand horizontal scroll progress.
-      if (!reducedMotion && mainTween.scrollTrigger) {
-        cardRefs.current.forEach((card) => {
-          if (!card) return;
-          const titleEl = card.querySelector("h2");
-          if (!titleEl) return;
-          gsap.from(titleEl, {
-            y: "110%",
-            duration: 0.7,
-            ease: "expo.out",
-            scrollTrigger: {
-              trigger: card,
-              containerAnimation: mainTween.scrollTrigger!,
-              start: "left 88%",
-              toggleActions: "play none none none",
-            },
-          });
         });
       }
     }, containerRef);
