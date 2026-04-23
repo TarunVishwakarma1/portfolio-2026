@@ -57,6 +57,7 @@ export default function ServicesSection() {
     gsap.registerPlugin(ScrollTrigger);
 
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const isTouch       = window.matchMedia("(hover: none), (pointer: coarse)").matches;
 
     if (reducedMotion) return; // CSS scale(1.35) on .service-img-zoom handles static state
 
@@ -75,9 +76,8 @@ export default function ServicesSection() {
           scrollTrigger: { trigger: card, start: "top 88%" },
         });
 
-        // Vertical parallax — GSAP drives translateY on wrapper only.
-        // The <img> handles scale via CSS (.service-img-zoom), no transform conflict.
-        if (parallax) {
+        // Vertical parallax — desktop only (touch devices skip scrub animation)
+        if (parallax && !isTouch) {
           gsap.fromTo(
             parallax,
             { y: -PARALLAX_V },

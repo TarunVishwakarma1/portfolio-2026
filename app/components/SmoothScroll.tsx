@@ -19,6 +19,10 @@ export default function SmoothScroll({
   children: React.ReactNode;
 }>) {
   useEffect(() => {
+    // Touch devices have native momentum scrolling — Lenis lerp fights it and causes jank.
+    // Skip Lenis entirely; ScrollTrigger still works via native scroll events.
+    if (window.matchMedia("(hover: none), (pointer: coarse)").matches) return;
+
     const lenis = new Lenis({
       lerp: 0.08,
       smoothWheel: true,

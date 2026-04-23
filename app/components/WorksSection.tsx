@@ -71,6 +71,7 @@ export default function WorksSection() {
     gsap.registerPlugin(ScrollTrigger);
 
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const isTouch       = window.matchMedia("(hover: none), (pointer: coarse)").matches;
 
     // Set h2 initial state for title reveal (before context so it's always applied)
     if (!reducedMotion) {
@@ -80,8 +81,10 @@ export default function WorksSection() {
       });
     }
 
-    // Track which titles have already revealed (survive re-renders)
+    // Track which titles have already revealed
     const revealedTitles = new Set<number>();
+    // Prevent multiple rAF calls per scroll frame (avoids forced-layout thrashing)
+    let revealPending = false;
 
     const ctx = gsap.context(() => {
       const strip = stripRef.current!;
@@ -100,25 +103,30 @@ export default function WorksSection() {
           anticipatePin: 1,
           invalidateOnRefresh: true,
           onUpdate(self) {
-            // Parallax — skip if reduced motion
-            if (!reducedMotion) {
+            // Image parallax — desktop only (scrubbed transform on every frame is costly on mobile)
+            if (!reducedMotion && !isTouch) {
               const shift = self.progress * PARALLAX_PX;
               imageRefs.current.forEach((img) => {
                 if (!img) return;
                 img.style.transform = `translateX(${shift}px) scale(${SCALE})`;
               });
+            }
 
-              // Title micro-reveal: fire when card's left edge crosses 88% of viewport
-              cardRefs.current.forEach((card, idx) => {
-                if (!card || revealedTitles.has(idx)) return;
-                const rect = card.getBoundingClientRect();
-                if (rect.left < window.innerWidth * 0.88) {
-                  revealedTitles.add(idx);
-                  const titleEl = card.querySelector("h2");
-                  if (titleEl) {
-                    gsap.to(titleEl, { y: 0, duration: 0.7, ease: "expo.out" });
+            // Title micro-reveal — deferred to next rAF to avoid forced-layout (getBoundingClientRect
+            // after GSAP's transform write would force synchronous layout recalculation)
+            if (!reducedMotion && !revealPending) {
+              revealPending = true;
+              requestAnimationFrame(() => {
+                cardRefs.current.forEach((card, idx) => {
+                  if (!card || revealedTitles.has(idx)) return;
+                  const rect = card.getBoundingClientRect();
+                  if (rect.left < window.innerWidth * 0.88) {
+                    revealedTitles.add(idx);
+                    const titleEl = card.querySelector("h2");
+                    if (titleEl) gsap.to(titleEl, { y: 0, duration: 0.7, ease: "expo.out" });
                   }
-                }
+                });
+                revealPending = false;
               });
             }
 

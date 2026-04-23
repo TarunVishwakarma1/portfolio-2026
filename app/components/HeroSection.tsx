@@ -57,20 +57,20 @@ export default function HeroSection() {
           stagger: WORD_DUR * 0.2,
         }, 0.7);
 
-        // ── Scroll-out parallax ─────────────────────────────────────────────
-        const st = { trigger: sectionRef.current, start: "top top", end: "bottom top", scrub: true };
+        // ── Scroll-out parallax (desktop only — touch devices use native scroll) ─
+        const isTouch = window.matchMedia("(hover: none), (pointer: coarse)").matches;
+        if (!isTouch) {
+          const st = { trigger: sectionRef.current, start: "top top", end: "bottom top", scrub: true };
 
-        // Headline: fastest exit — drifts up + fades
-        if (headlineRef.current) {
-          gsap.to(headlineRef.current, { y: -90, opacity: 0, ease: "none", scrollTrigger: st });
-        }
-        // Sub row: slightly slower (depth layer)
-        if (subRowRef.current) {
-          gsap.to(subRowRef.current, { y: -48, opacity: 0, ease: "none", scrollTrigger: st });
-        }
-        // Meta row: slowest — barely moves (parallax depth)
-        if (metaRowRef.current) {
-          gsap.to(metaRowRef.current, { y: -24, opacity: 0, ease: "none", scrollTrigger: st });
+          if (headlineRef.current) {
+            gsap.to(headlineRef.current, { y: -90, opacity: 0, ease: "none", scrollTrigger: st });
+          }
+          if (subRowRef.current) {
+            gsap.to(subRowRef.current, { y: -48, opacity: 0, ease: "none", scrollTrigger: st });
+          }
+          if (metaRowRef.current) {
+            gsap.to(metaRowRef.current, { y: -24, opacity: 0, ease: "none", scrollTrigger: st });
+          }
         }
       }, sectionRef);
     };
