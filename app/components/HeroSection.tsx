@@ -69,19 +69,14 @@ export default function HeroSection() {
         minHeight: "100dvh",
         display: "flex",
         flexDirection: "column",
-        justifyContent: "flex-end",
-        padding: "0 6vw 5rem",
-        position: "relative",
+        justifyContent: "space-between",
+        padding: "6rem 6vw 5rem",
       }}
     >
       {/* Top meta row */}
       <div
         ref={metaRef}
         style={{
-          position: "absolute",
-          top: "6rem",
-          left: "6vw",
-          right: "6vw",
           display: "flex",
           justifyContent: "space-between",
           alignItems: "flex-start",
@@ -114,6 +109,8 @@ export default function HeroSection() {
         </p>
       </div>
 
+      {/* Bottom block: headline + sub row */}
+      <div>
       {/* Headline — each line in overflow:hidden mask container */}
       <div style={{ marginBottom: "3.5rem" }}>
         {LINES.map((line, i) => (
@@ -196,6 +193,8 @@ export default function HeroSection() {
           </div>
         </div>
       </div>
+
+      </div>{/* end bottom block */}
 
       <style>{`
         @keyframes scrollDrop {

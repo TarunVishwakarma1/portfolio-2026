@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import LinkWipe from "./LinkWipe";
 
 const navLinks = [
   { label: "Work", href: "#work" },
@@ -112,7 +113,7 @@ export default function Navigation() {
             <a
               key={item.label}
               href={item.href}
-              className="menu-nav-item"
+              className="menu-nav-item lw-trigger"
               onClick={close}
               style={{
                 transitionDelay: isOpen
@@ -120,7 +121,7 @@ export default function Navigation() {
                   : "0s",
               }}
             >
-              {item.label}
+              <LinkWipe>{item.label}</LinkWipe>
             </a>
           ))}
         </nav>
@@ -133,22 +134,16 @@ export default function Navigation() {
                 href={s.href}
                 target="_blank"
                 rel="noopener noreferrer"
+                className="lw-trigger"
                 style={{
                   fontSize: "0.7rem",
                   letterSpacing: "0.14em",
                   color: "var(--fg-dim)",
                   textDecoration: "none",
                   textTransform: "uppercase",
-                  transition: "color 0.25s",
                 }}
-                onMouseEnter={(e) =>
-                  ((e.target as HTMLElement).style.color = "var(--accent)")
-                }
-                onMouseLeave={(e) =>
-                  ((e.target as HTMLElement).style.color = "var(--fg-dim)")
-                }
               >
-                {s.label}
+                <LinkWipe>{s.label}</LinkWipe>
               </a>
             ))}
           </div>

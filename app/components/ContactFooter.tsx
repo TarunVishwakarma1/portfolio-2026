@@ -5,6 +5,7 @@ import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import ScrollTrigger from "gsap/ScrollTrigger";
 import LiveClock from "./LiveClock";
+import LinkWipe from "./LinkWipe";
 
 const socials = [
   { label: "GitHub", href: "https://github.com/TarunVishwakarma1" },
@@ -70,7 +71,7 @@ export default function ContactFooter() {
       <a
         ref={emailRef}
         href="mailto:hello@tarunvishwakarma.dev"
-        className="font-display link-amber"
+        className="font-display link-amber lw-trigger"
         style={{
           fontSize: "clamp(1.8rem, 4.5vw, 6rem)",
           fontWeight: 300,
@@ -80,7 +81,7 @@ export default function ContactFooter() {
           marginBottom: "6rem",
         }}
       >
-        hello@tarunvishwakarma.dev
+        <LinkWipe>hello@tarunvishwakarma.dev</LinkWipe>
       </a>
 
       {/* Bottom bar */}
@@ -113,14 +114,14 @@ export default function ContactFooter() {
               href={s.href}
               target="_blank"
               rel="noopener noreferrer"
-              className="link-amber"
+              className="link-amber lw-trigger"
               style={{
                 fontSize: "0.7rem",
                 letterSpacing: "0.12em",
                 textTransform: "uppercase",
               }}
             >
-              {s.label}
+              <LinkWipe>{s.label}</LinkWipe>
             </a>
           ))}
         </div>

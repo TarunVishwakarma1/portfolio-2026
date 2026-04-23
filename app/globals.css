@@ -277,6 +277,53 @@ body::after {
   }
 }
 
+/* ── Link wipe hover animation (raviklaassens-style) ── */
+.lw {
+  display: inline-grid;
+  overflow: hidden;
+  vertical-align: top;
+}
+.lw-text {
+  grid-area: 1 / 1;
+  clip-path: inset(0% 0% 0% 0%);
+  translate: 0 0 0;
+  scale: 1;
+  transform-origin: bottom center;
+  transition:
+    clip-path 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    scale     0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    translate 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.lw-inner {
+  display: contents;
+}
+.lw-inner::after {
+  content: attr(data-label);
+  display: block;
+  grid-area: 1 / 1;
+  clip-path: inset(0% 0% 100% 0%);
+  translate: 0 -0.25em 0;
+  scale: 1.05;
+  transform-origin: top center;
+  transition:
+    clip-path 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    scale     0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    translate 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@media (hover: hover) and (pointer: fine) {
+  .lw-trigger:is(:hover, :focus-visible) .lw-text {
+    clip-path: inset(100% 0% 0% 0%);
+    translate: 0 0.25em 0;
+    scale: 0.95;
+  }
+  .lw-trigger:is(:hover, :focus-visible) .lw-inner::after {
+    clip-path: inset(0% 0% 0% 0%);
+    scale: 1;
+    translate: 0 0 0;
+    transition-delay: 0.075s;
+  }
+}
+
 /* ── Reduced motion ── */
 /* NOTE: This suppresses CSS transitions/animations only.
    GSAP animations must be disabled per-component by checking:
