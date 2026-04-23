@@ -157,12 +157,14 @@ export default function WorksSection() {
     }, containerRef);
 
     // Pointer drag → scroll with inertia
-    // touch-action:none on the strip lets pointer events fire on mobile without
-    // the browser intercepting them as native scroll
+    // Default touch-action: pan-y so vertical swipes still scroll the page normally.
+    // We only capture the pointer (and block native scroll) once horizontal intent is
+    // confirmed — i.e. finger moved more horizontally than vertically past an 8px threshold.
     const strip = stripRef.current!;
-    strip.style.touchAction = "none";
+    strip.style.touchAction = "pan-y";
 
-    let dragStartX = 0, dragStartScroll = 0, dragging = false;
+    let dragStartX = 0, dragStartY = 0, dragStartScroll = 0;
+    let dragging = false, intentConfirmed = false;
     let lastScrollTarget = 0, lastMoveTime = 0, scrollVelocity = 0;
     let dragDelta = 0;
 
@@ -170,27 +172,51 @@ export default function WorksSection() {
 
     const onPointerDown = (e: PointerEvent) => {
       dragging = true;
+      intentConfirmed = false;
       dragStartX = e.clientX;
+      dragStartY = e.clientY;
       dragStartScroll = window.scrollY;
       lastScrollTarget = window.scrollY;
       lastMoveTime = performance.now();
       scrollVelocity = 0;
       dragDelta = 0;
       isDragRef.current = false;
-      strip.setPointerCapture(e.pointerId);
-      if (!isTouchPointer(e)) strip.style.cursor = "grabbing";
-      window.__lenis?.stop();
+
+      // Desktop mouse: confirm intent immediately (no ambiguous scroll direction)
+      if (!isTouchPointer(e)) {
+        intentConfirmed = true;
+        strip.setPointerCapture(e.pointerId);
+        strip.style.cursor = "grabbing";
+        window.__lenis?.stop();
+      }
     };
 
     const onPointerMove = (e: PointerEvent) => {
       if (!dragging) return;
+
+      const dx = dragStartX - e.clientX;
+      const dy = e.clientY - dragStartY;
+
+      // Touch: wait until direction is clear before committing to horizontal drag
+      if (!intentConfirmed && isTouchPointer(e)) {
+        const adx = Math.abs(dx);
+        const ady = Math.abs(dy);
+        if (adx < 8 && ady < 8) return; // still ambiguous — wait
+        if (ady > adx) { dragging = false; return; } // vertical intent — give back to browser
+        // Horizontal intent confirmed
+        intentConfirmed = true;
+        strip.setPointerCapture(e.pointerId);
+        strip.style.touchAction = "none"; // block native scroll while dragging
+        window.__lenis?.stop();
+      }
+
+      if (!intentConfirmed) return;
+
       const st = ScrollTrigger.getById("works-h");
       if (!st) return;
-      const dx = dragStartX - e.clientX;
       dragDelta = Math.abs(dx);
       if (dragDelta > 6) isDragRef.current = true;
       const ratio = (st.end - st.start) / Math.abs(strip.scrollWidth - window.innerWidth) || 1;
-      // Touch: slightly higher sensitivity (1.1x) to compensate for finger width
       const sensitivity = isTouchPointer(e) ? 1.1 : 1;
       const target = Math.max(st.start, Math.min(st.end, dragStartScroll + dx * ratio * sensitivity));
       const now = performance.now();
@@ -204,13 +230,13 @@ export default function WorksSection() {
     const onPointerUp = (e: PointerEvent) => {
       if (!dragging) return;
       dragging = false;
+      intentConfirmed = false;
+      strip.style.touchAction = "pan-y"; // restore vertical scroll
       if (!isTouchPointer(e)) strip.style.cursor = "grab";
       window.__lenis?.start();
       const st = ScrollTrigger.getById("works-h");
-      // Lower inertia threshold for touch (more responsive flick)
       const inertiaThreshold = isTouchPointer(e) ? 0.02 : 0.05;
       if (st && Math.abs(scrollVelocity) > inertiaThreshold) {
-        // Touch gets longer inertia travel (500 vs 380) and slightly longer duration
         const inertiaMultiplier = isTouchPointer(e) ? 500 : 380;
         const inertiaTarget = Math.max(st.start, Math.min(st.end, window.scrollY + scrollVelocity * inertiaMultiplier));
         window.__lenis?.scrollTo(inertiaTarget, {
