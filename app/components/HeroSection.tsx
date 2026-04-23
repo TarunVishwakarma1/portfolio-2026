@@ -1,0 +1,198 @@
+// app/components/HeroSection.tsx
+"use client";
+
+import { useEffect, useRef } from "react";
+import gsap from "gsap";
+
+const LINES = [
+  { text: "Development", style: {} },
+  { text: "& Code", style: {} },
+  { text: "that matters.", style: { fontStyle: "italic", color: "var(--accent)" } },
+];
+
+export default function HeroSection() {
+  const lineRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  const metaRef = useRef<HTMLDivElement>(null);
+  const subRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      const tl = gsap.timeline({ delay: 0.15 });
+
+      // Mask reveal: lines slide up from translateY(110%)
+      lineRefs.current.forEach((line, i) => {
+        if (!line) return;
+        tl.to(
+          line,
+          {
+            y: 0,
+            opacity: 1,
+            duration: 0.9,
+            ease: "expo.out",
+          },
+          i * 0.13
+        );
+      });
+
+      // Fade in meta rows after lines
+      tl.to(
+        [metaRef.current, subRef.current],
+        { opacity: 1, duration: 0.7, ease: "expo.out", stagger: 0.08 },
+        "-=0.3"
+      );
+    });
+
+    return () => ctx.revert();
+  }, []);
+
+  return (
+    <section
+      id="hero"
+      style={{
+        minHeight: "100dvh",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "flex-end",
+        padding: "0 6vw 5rem",
+        position: "relative",
+      }}
+    >
+      {/* Top meta row */}
+      <div
+        ref={metaRef}
+        style={{
+          position: "absolute",
+          top: "6rem",
+          left: "6vw",
+          right: "6vw",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+          opacity: 0,
+        }}
+      >
+        <p
+          style={{
+            fontSize: "0.72rem",
+            letterSpacing: "0.16em",
+            color: "var(--fg-dim)",
+            textTransform: "uppercase",
+            lineHeight: 1.6,
+          }}
+        >
+          Full Stack Developer
+          <br />
+          Delhi, India
+        </p>
+        <p
+          style={{
+            fontSize: "0.72rem",
+            letterSpacing: "0.16em",
+            color: "var(--fg-dim)",
+            textTransform: "uppercase",
+            textAlign: "right",
+          }}
+        >
+          2019 — Present
+        </p>
+      </div>
+
+      {/* Headline — each line in overflow:hidden mask container */}
+      <div style={{ marginBottom: "3.5rem" }}>
+        {LINES.map((line, i) => (
+          <div key={i} style={{ overflow: "hidden", lineHeight: 0.95 }}>
+            <span
+              ref={(el) => { lineRefs.current[i] = el; }}
+              className="font-display"
+              style={{
+                display: "block",
+                fontSize: "clamp(3.2rem, 10vw, 9.5rem)",
+                fontWeight: 300,
+                letterSpacing: "-0.02em",
+                transform: "translateY(110%)",
+                opacity: 0,
+                ...line.style,
+              }}
+            >
+              {line.text}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      {/* Bottom row */}
+      <div
+        ref={subRef}
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-end",
+          opacity: 0,
+        }}
+      >
+        <p
+          style={{
+            fontSize: "0.75rem",
+            letterSpacing: "0.12em",
+            color: "var(--fg-dim)",
+            textTransform: "uppercase",
+            maxWidth: "280px",
+            lineHeight: 1.7,
+          }}
+        >
+          Building products that are fast, precise, and built to last.
+        </p>
+
+        {/* Scroll indicator */}
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "0.5rem",
+          }}
+        >
+          <p
+            style={{
+              fontSize: "0.6rem",
+              letterSpacing: "0.2em",
+              color: "var(--fg-dim)",
+              textTransform: "uppercase",
+              writingMode: "vertical-rl",
+              transform: "rotate(180deg)",
+            }}
+          >
+            Scroll
+          </p>
+          <div
+            style={{
+              width: "1px",
+              height: "56px",
+              background: "var(--border)",
+              position: "relative",
+              overflow: "hidden",
+            }}
+          >
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                background: "var(--accent)",
+                animation: "scrollDrop 2.2s cubic-bezier(0.16,1,0.3,1) infinite",
+              }}
+            />
+          </div>
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes scrollDrop {
+          0%   { transform: scaleY(0); transform-origin: top;    }
+          48%  { transform: scaleY(1); transform-origin: top;    }
+          52%  { transform: scaleY(1); transform-origin: bottom; }
+          100% { transform: scaleY(0); transform-origin: bottom; }
+        }
+      `}</style>
+    </section>
+  );
+}
