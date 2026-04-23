@@ -1,0 +1,146 @@
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0a0a0a; color: #e8e4dd; font-family: 'Courier New', monospace; }
+  h2 { font-family: Georgia, serif; font-size: 1.4rem; font-weight: 300; margin-bottom: 0.35rem; }
+  .subtitle { font-size: 0.75rem; color: rgba(232,228,221,0.42); letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 2.5rem; }
+
+  .cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+
+  .card { border: 1px solid rgba(232,228,221,0.1); border-radius: 2px; cursor: pointer; transition: border-color 0.3s, transform 0.25s; overflow: hidden; display: flex; flex-direction: column; }
+  .card:hover { border-color: rgba(232,228,221,0.3); transform: translateY(-2px); }
+  .card.selected { border-color: #e8e4dd; }
+  .card.selected .card-label { background: #e8e4dd; color: #0a0a0a; }
+  .card-label { font-size: 0.58rem; letter-spacing: 0.18em; text-transform: uppercase; padding: 0.5rem 0.85rem; border-bottom: 1px solid rgba(232,228,221,0.1); color: rgba(232,228,221,0.45); transition: background 0.2s, color 0.2s; }
+
+  .preview {
+    height: 200px; background: #050505;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    padding: 1rem; position: relative; overflow: hidden;
+  }
+
+  .p-nav { position: absolute; top: 0; left: 0; right: 0; padding: 0.6rem 1rem; display: flex; justify-content: space-between; border-bottom: 1px solid rgba(232,228,221,0.07); }
+  .p-logo { font-family: Georgia, serif; font-size: 0.72rem; font-weight: 300; }
+  .p-h1 { font-family: Georgia, serif; font-size: 1.9rem; font-weight: 300; line-height: 0.93; letter-spacing: -0.025em; margin-bottom: 0.65rem; }
+  .p-h1 em { font-style: italic; }
+  .p-row { display: flex; justify-content: space-between; align-items: center; padding-top: 0.6rem; border-top: 1px solid rgba(232,228,221,0.07); }
+  .p-label { font-size: 0.45rem; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(232,228,221,0.3); }
+  .p-btn { font-size: 0.5rem; letter-spacing: 0.12em; text-transform: uppercase; padding: 0.3rem 0.6rem; border: 1px solid; border-radius: 1px; }
+  .p-dot { width: 5px; height: 5px; border-radius: 50%; }
+  .p-tag { font-size: 0.42rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.18rem 0.45rem; border: 1px solid; border-radius: 1px; display: inline-block; margin-right: 0.3rem; margin-top: 0.4rem; }
+
+  .card-meta { padding: 0.9rem 1rem 1.2rem; }
+  .card-meta h3 { font-family: Georgia, serif; font-weight: 300; font-size: 0.9rem; margin-bottom: 0.35rem; }
+  .card-meta p { font-size: 0.63rem; color: rgba(232,228,221,0.45); line-height: 1.6; }
+  .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 0.35rem; vertical-align: middle; }
+</style>
+
+<h2>Color Accent</h2>
+<p class="subtitle">How one color punctuates the monochrome palette</p>
+
+<div class="cards">
+
+  <!-- A: No accent – pure monochrome -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-label">Option A</div>
+    <div class="preview">
+      <div class="p-nav">
+        <span class="p-logo" style="color:#e8e4dd">T—V</span>
+        <span style="font-size:0.55rem;color:rgba(232,228,221,0.3);letter-spacing:0.1em">MENU</span>
+      </div>
+      <div>
+        <div class="p-h1" style="color:#e8e4dd">Dev &amp;<br/><em style="color:rgba(232,228,221,0.3)">Code.</em></div>
+        <div class="p-row">
+          <span class="p-label">Full Stack · Delhi</span>
+          <span class="p-btn" style="color:rgba(232,228,221,0.6);border-color:rgba(232,228,221,0.2)">Work →</span>
+        </div>
+        <div>
+          <span class="p-tag" style="color:rgba(232,228,221,0.3);border-color:rgba(232,228,221,0.12)">Next.js</span>
+          <span class="p-tag" style="color:rgba(232,228,221,0.3);border-color:rgba(232,228,221,0.12)">TypeScript</span>
+        </div>
+      </div>
+    </div>
+    <div class="card-meta">
+      <h3><span class="swatch" style="background:#e8e4dd;border:1px solid rgba(255,255,255,0.2)"></span>Pure Monochrome</h3>
+      <p>Zero accent. Pure off-white on black. Maximum editorial restraint. Ravi Klaassens / Marko Stupič territory.</p>
+    </div>
+  </div>
+
+  <!-- B: Electric Blue -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-label">Option B</div>
+    <div class="preview">
+      <div class="p-nav">
+        <span class="p-logo" style="color:#e8e4dd">T—V</span>
+        <span style="font-size:0.55rem;color:#4f6ef7;letter-spacing:0.1em">MENU</span>
+      </div>
+      <div>
+        <div class="p-h1" style="color:#e8e4dd">Dev &amp;<br/><em style="color:#4f6ef7">Code.</em></div>
+        <div class="p-row">
+          <span class="p-label">Full Stack · Delhi</span>
+          <span class="p-btn" style="color:#4f6ef7;border-color:#4f6ef7">Work →</span>
+        </div>
+        <div>
+          <span class="p-tag" style="color:#4f6ef7;border-color:rgba(79,110,247,0.3)">Next.js</span>
+          <span class="p-tag" style="color:rgba(232,228,221,0.3);border-color:rgba(232,228,221,0.12)">TypeScript</span>
+        </div>
+      </div>
+    </div>
+    <div class="card-meta">
+      <h3><span class="swatch" style="background:#4f6ef7"></span>Electric Blue #4F6EF7</h3>
+      <p>Bold, technical, modern. Developer-coded. Pops hard on black — links, hover states, active tags all use it.</p>
+    </div>
+  </div>
+
+  <!-- C: Warm Amber -->
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-label">Option C</div>
+    <div class="preview">
+      <div class="p-nav">
+        <span class="p-logo" style="color:#e8e4dd">T—V</span>
+        <span style="font-size:0.55rem;color:#d4a853;letter-spacing:0.1em">MENU</span>
+      </div>
+      <div>
+        <div class="p-h1" style="color:#e8e4dd">Dev &amp;<br/><em style="color:#d4a853">Code.</em></div>
+        <div class="p-row">
+          <span class="p-label">Full Stack · Delhi</span>
+          <span class="p-btn" style="color:#d4a853;border-color:#d4a853">Work →</span>
+        </div>
+        <div>
+          <span class="p-tag" style="color:#d4a853;border-color:rgba(212,168,83,0.3)">Next.js</span>
+          <span class="p-tag" style="color:rgba(232,228,221,0.3);border-color:rgba(232,228,221,0.12)">TypeScript</span>
+        </div>
+      </div>
+    </div>
+    <div class="card-meta">
+      <h3><span class="swatch" style="background:#d4a853"></span>Warm Amber #D4A853</h3>
+      <p>Sophisticated, warm, premium. Feels like aged paper meets code. Mixes beautifully with Cormorant serif italic.</p>
+    </div>
+  </div>
+
+  <!-- D: Acid Green -->
+  <div class="card" data-choice="d" onclick="toggleSelect(this)">
+    <div class="card-label">Option D</div>
+    <div class="preview">
+      <div class="p-nav">
+        <span class="p-logo" style="color:#e8e4dd">T—V</span>
+        <span style="font-size:0.55rem;color:#b5f542;letter-spacing:0.1em">MENU</span>
+      </div>
+      <div>
+        <div class="p-h1" style="color:#e8e4dd">Dev &amp;<br/><em style="color:#b5f542">Code.</em></div>
+        <div class="p-row">
+          <span class="p-label">Full Stack · Delhi</span>
+          <span class="p-btn" style="color:#b5f542;border-color:#b5f542">Work →</span>
+        </div>
+        <div>
+          <span class="p-tag" style="color:#b5f542;border-color:rgba(181,245,66,0.3)">Next.js</span>
+          <span class="p-tag" style="color:rgba(232,228,221,0.3);border-color:rgba(232,228,221,0.12)">TypeScript</span>
+        </div>
+      </div>
+    </div>
+    <div class="card-meta">
+      <h3><span class="swatch" style="background:#b5f542"></span>Acid Green #B5F542</h3>
+      <p>High contrast, bold statement. Very Awwwards 2024 — studiodumbar, heco.studio, buildingstudio energy.</p>
+    </div>
+  </div>
+
+</div>

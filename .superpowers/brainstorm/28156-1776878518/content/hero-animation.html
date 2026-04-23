@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Hero Animation Style</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #080808; color: #edeae3; font-family: 'Courier New', monospace; padding: 2rem; min-height: 100vh; }
+
+  h2 { font-family: Georgia, serif; font-size: 1.3rem; font-weight: 300; margin-bottom: 0.35rem; }
+  .subtitle { font-size: 0.72rem; color: rgba(237,234,227,0.42); letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 2rem; }
+
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
+
+  .panel {
+    border: 1px solid rgba(237,234,227,0.1);
+    border-radius: 2px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.3s;
+    display: flex; flex-direction: column;
+  }
+  .panel:hover { border-color: rgba(237,234,227,0.3); }
+  .panel.selected { border-color: #edeae3; }
+  .panel.selected .panel-label { background: #edeae3; color: #080808; }
+
+  .panel-label {
+    font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase;
+    padding: 0.5rem 0.85rem; border-bottom: 1px solid rgba(237,234,227,0.1);
+    color: rgba(237,234,227,0.45); transition: background 0.2s, color 0.2s;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+
+  .replay-btn {
+    font-size: 0.55rem; letter-spacing: 0.1em; text-transform: uppercase;
+    color: rgba(237,234,227,0.3); cursor: pointer; padding: 0.1rem 0.35rem;
+    border: 1px solid rgba(237,234,227,0.15); border-radius: 1px;
+    transition: color 0.2s, border-color 0.2s;
+    background: none;
+  }
+  .replay-btn:hover { color: rgba(237,234,227,0.8); border-color: rgba(237,234,227,0.4); }
+
+  .demo-area {
+    height: 220px;
+    background: #050505;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    padding: 1.25rem 1.25rem 1rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .panel-meta { padding: 1rem 1.1rem 1.3rem; border-top: 1px solid rgba(237,234,227,0.07); }
+  .panel-meta h3 { font-family: Georgia, serif; font-weight: 300; font-size: 0.95rem; margin-bottom: 0.4rem; }
+  .panel-meta p { font-size: 0.65rem; color: rgba(237,234,227,0.45); line-height: 1.65; }
+
+  /* ── A: MASK / LINE REVEAL ── */
+  .mask-wrap { overflow: hidden; line-height: 0.93; }
+  .mask-line {
+    font-family: Georgia, serif;
+    font-size: 2.6rem;
+    font-weight: 300;
+    display: block;
+    letter-spacing: -0.025em;
+    color: #edeae3;
+    transform: translateY(110%);
+    opacity: 0;
+  }
+  .mask-line.italic { font-style: italic; color: rgba(237,234,227,0.35); }
+  .mask-line.animate { animation: lineUp 0.9s cubic-bezier(0.16,1,0.3,1) both; }
+  .mask-line.animate:nth-of-type(1) { animation-delay: 0.05s; }
+  .mask-line.animate:nth-of-type(2) { animation-delay: 0.18s; }
+  .mask-line.animate:nth-of-type(3) { animation-delay: 0.31s; }
+  @keyframes lineUp {
+    from { transform: translateY(110%); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+  }
+  .mask-sub {
+    font-size: 0.55rem; letter-spacing: 0.14em; text-transform: uppercase;
+    color: rgba(237,234,227,0.3); margin-top: 0.85rem;
+    opacity: 0; transition: opacity 0.6s 0.7s;
+  }
+  .mask-sub.animate { opacity: 1; }
+
+  /* ── B: SCRAMBLE / DECODE ── */
+  .scramble-wrap { }
+  .scramble-title {
+    font-family: Georgia, serif;
+    font-size: 2.6rem;
+    font-weight: 300;
+    letter-spacing: -0.025em;
+    line-height: 0.93;
+    color: #edeae3;
+    opacity: 0;
+    transition: opacity 0.01s;
+    white-space: pre;
+  }
+  .scramble-title span.resolved { color: #edeae3; }
+  .scramble-title span.noise { color: rgba(237,234,227,0.25); }
+  .scramble-sub {
+    font-size: 0.55rem; letter-spacing: 0.14em; text-transform: uppercase;
+    color: rgba(237,234,227,0.3); margin-top: 0.85rem;
+    opacity: 0;
+  }
+
+  /* ── C: WORD STAGGER ── */
+  .word-title {
+    font-family: Georgia, serif;
+    font-size: 2.6rem;
+    font-weight: 300;
+    letter-spacing: -0.025em;
+    line-height: 0.93;
+  }
+  .word {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(18px) rotate(-1.5deg);
+    transition: opacity 0.6s cubic-bezier(0.16,1,0.3,1),
+                transform 0.6s cubic-bezier(0.16,1,0.3,1);
+  }
+  .word.italic { font-style: italic; color: rgba(237,234,227,0.35); }
+  .word-br { display: block; height: 0; }
+  .word-sub {
+    font-size: 0.55rem; letter-spacing: 0.14em; text-transform: uppercase;
+    color: rgba(237,234,227,0.3); margin-top: 0.85rem;
+    opacity: 0; transform: translateY(8px);
+    transition: opacity 0.5s, transform 0.5s;
+  }
+  .word-sub.animate { opacity: 1; transform: translateY(0); }
+
+  /* common nav wireframe */
+  .demo-nav {
+    position: absolute; top: 0; left: 0; right: 0;
+    display: flex; justify-content: space-between; padding: 0.65rem 1.25rem;
+    border-bottom: 1px solid rgba(237,234,227,0.07);
+  }
+  .demo-logo { font-family: Georgia, serif; font-size: 0.75rem; font-weight: 300; color: rgba(237,234,227,0.7); }
+  .demo-ham { display: flex; flex-direction: column; gap: 3px; margin-top: 3px; }
+  .demo-ham span { display: block; width: 14px; height: 0.8px; background: rgba(237,234,227,0.5); }
+
+  /* Select overlay */
+  .select-hint {
+    position: absolute; bottom: 0.6rem; right: 0.8rem;
+    font-size: 0.5rem; letter-spacing: 0.1em; text-transform: uppercase;
+    color: rgba(237,234,227,0.2);
+  }
+</style>
+</head>
+<body>
+
+<h2>Hero Text Animation</h2>
+<p class="subtitle">Choose how the headline enters — click replay to see again</p>
+
+<div class="grid">
+
+  <!-- A: Line Mask Reveal -->
+  <div class="panel" id="panel-a" onclick="selectPanel('a')">
+    <div class="panel-label">
+      <span>Option A</span>
+      <button class="replay-btn" onclick="event.stopPropagation(); replayA()">↺ Replay</button>
+    </div>
+    <div class="demo-area" id="demo-a">
+      <div class="demo-nav">
+        <span class="demo-logo">T—V</span>
+        <div class="demo-ham"><span></span><span></span></div>
+      </div>
+      <div id="mask-content">
+        <div class="mask-wrap"><span class="mask-line" id="ml1">Development</span></div>
+        <div class="mask-wrap"><span class="mask-line" id="ml2">&amp; Code</span></div>
+        <div class="mask-wrap"><span class="mask-line italic" id="ml3">that matters.</span></div>
+        <div class="mask-sub" id="msub">Full Stack Developer · Delhi, India</div>
+      </div>
+      <div class="select-hint">click to select</div>
+    </div>
+    <div class="panel-meta">
+      <h3>Mask Line Reveal</h3>
+      <p>Each line slides up from behind a clip-path mask. Classic Awwwards opener — locomotive, resn.co, dogstudio. Satisfying and cinematic.</p>
+    </div>
+  </div>
+
+  <!-- B: Scramble Decode -->
+  <div class="panel" id="panel-b" onclick="selectPanel('b')">
+    <div class="panel-label">
+      <span>Option B</span>
+      <button class="replay-btn" onclick="event.stopPropagation(); replayB()">↺ Replay</button>
+    </div>
+    <div class="demo-area" id="demo-b">
+      <div class="demo-nav">
+        <span class="demo-logo">T—V</span>
+        <div class="demo-ham"><span></span><span></span></div>
+      </div>
+      <div id="scramble-content">
+        <div class="scramble-title" id="scramble-title"></div>
+        <div class="scramble-sub" id="scramble-sub">Full Stack Developer · Delhi, India</div>
+      </div>
+      <div class="select-hint">click to select</div>
+    </div>
+    <div class="panel-meta">
+      <h3>Scramble / Decode</h3>
+      <p>Characters randomise then "resolve" left-to-right into the final text. Techy, precise, memorable — perfect for a developer portfolio.</p>
+    </div>
+  </div>
+
+  <!-- C: Word Stagger -->
+  <div class="panel" id="panel-c" onclick="selectPanel('c')">
+    <div class="panel-label">
+      <span>Option C</span>
+      <button class="replay-btn" onclick="event.stopPropagation(); replayC()">↺ Replay</button>
+    </div>
+    <div class="demo-area" id="demo-c">
+      <div class="demo-nav">
+        <span class="demo-logo">T—V</span>
+        <div class="demo-ham"><span></span><span></span></div>
+      </div>
+      <div class="word-title" id="word-title">
+        <span class="word" id="w1">Development</span>
+        <span class="word-br"></span>
+        <span class="word italic" id="w2">&amp;</span>
+        <span class="word" id="w3">Code</span>
+        <span class="word-br"></span>
+        <span class="word italic" id="w4">that</span>
+        <span class="word italic" id="w5">matters.</span>
+      </div>
+      <div class="word-sub" id="wsub">Full Stack Developer · Delhi, India</div>
+      <div class="select-hint">click to select</div>
+    </div>
+    <div class="panel-meta">
+      <h3>Word Stagger + Tilt</h3>
+      <p>Words fade up with a slight rotation, one after another. Organic, warm — feels handcrafted. Used by anyway.studio, aktiva.co.</p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // ── Selection ──
+  let selected = null;
+  function selectPanel(choice) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('selected'));
+    document.getElementById('panel-' + choice).classList.add('selected');
+    selected = choice;
+    // Emit event for companion
+    if (window.__companion_select) window.__companion_select(choice);
+  }
+
+  // ── A: Mask Reveal ──
+  function replayA() {
+    const lines = [document.getElementById('ml1'), document.getElementById('ml2'), document.getElementById('ml3')];
+    const sub = document.getElementById('msub');
+    lines.forEach(l => { l.classList.remove('animate'); l.style.transform = 'translateY(110%)'; l.style.opacity = '0'; });
+    sub.classList.remove('animate');
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      lines.forEach(l => l.classList.add('animate'));
+      sub.classList.add('animate');
+    }));
+  }
+
+  // ── B: Scramble ──
+  const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz&. ';
+  const TARGET_LINES = ['Development', '& Code', 'that matters.'];
+  const FULL_TARGET = TARGET_LINES.join('\n');
+
+  function scrambleChar(target) {
+    return target === ' ' || target === '\n' ? target : CHARS[Math.floor(Math.random() * (CHARS.length - 3))];
+  }
+
+  function replayB() {
+    const el = document.getElementById('scramble-title');
+    const sub = document.getElementById('scramble-sub');
+    el.style.opacity = '1';
+    sub.style.opacity = '0';
+
+    const chars = FULL_TARGET.split('');
+    let resolved = 0;
+    const total = chars.filter(c => c !== '\n').length;
+    let frame = Array(chars.length).fill(null).map((_, i) => chars[i] === '\n' ? '\n' : scrambleChar(chars[i]));
+
+    function render() {
+      el.innerHTML = frame.map((c, i) => {
+        if (c === '\n') return '<br/>';
+        const isResolved = i < resolved;
+        return `<span class="${isResolved ? 'resolved' : 'noise'}">${c === '&' ? '&amp;' : c}</span>`;
+      }).join('');
+    }
+
+    let tick = 0;
+    const interval = setInterval(() => {
+      tick++;
+      // Noise shuffle for unresolved
+      for (let i = resolved; i < chars.length; i++) {
+        if (chars[i] !== '\n') frame[i] = scrambleChar(chars[i]);
+      }
+      // Resolve one char every 2 ticks
+      if (tick % 2 === 0 && resolved < chars.length) {
+        while (resolved < chars.length && chars[resolved] === '\n') {
+          frame[resolved] = '\n'; resolved++;
+        }
+        if (resolved < chars.length) { frame[resolved] = chars[resolved]; resolved++; }
+      }
+      render();
+      if (resolved >= chars.length) {
+        clearInterval(interval);
+        setTimeout(() => { sub.style.opacity = '1'; }, 200);
+      }
+    }, 30);
+  }
+
+  // ── C: Word Stagger ──
+  function replayC() {
+    const words = ['w1','w2','w3','w4','w5'].map(id => document.getElementById(id));
+    const sub = document.getElementById('wsub');
+    words.forEach(w => { w.style.opacity = '0'; w.style.transform = 'translateY(18px) rotate(-1.5deg)'; w.style.transition = 'none'; });
+    sub.classList.remove('animate');
+    setTimeout(() => {
+      words.forEach((w, i) => {
+        setTimeout(() => {
+          w.style.transition = 'opacity 0.65s cubic-bezier(0.16,1,0.3,1), transform 0.65s cubic-bezier(0.16,1,0.3,1)';
+          w.style.opacity = '1';
+          w.style.transform = 'translateY(0) rotate(0deg)';
+        }, i * 110);
+      });
+      setTimeout(() => sub.classList.add('animate'), words.length * 110 + 200);
+    }, 50);
+  }
+
+  // ── Auto-play all on load ──
+  window.addEventListener('load', () => {
+    setTimeout(replayA, 300);
+    setTimeout(replayB, 500);
+    setTimeout(replayC, 400);
+  });
+
+  // ── Companion hook ──
+  window.__companion_select = function(choice) {
+    try {
+      fetch('/__companion/select', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ choice, text: 'Option ' + choice.toUpperCase() })
+      });
+    } catch(e) {}
+  };
+</script>
+</body>
+</html>

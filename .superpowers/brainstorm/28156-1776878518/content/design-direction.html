@@ -1,0 +1,273 @@
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0a0a0a; color: #e8e4dd; font-family: 'Courier New', monospace; }
+
+  h2 { font-family: Georgia, serif; font-size: 1.4rem; font-weight: 300; letter-spacing: -0.01em; margin-bottom: 0.4rem; }
+  .subtitle { font-size: 0.75rem; color: rgba(232,228,221,0.45); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 2.5rem; }
+
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
+
+  .card {
+    border: 1px solid rgba(232,228,221,0.1);
+    border-radius: 2px;
+    cursor: pointer;
+    transition: border-color 0.3s, transform 0.3s;
+    overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  .card:hover { border-color: rgba(232,228,221,0.35); transform: translateY(-2px); }
+  .card.selected { border-color: #e8e4dd; }
+  .card.selected .card-label { background: #e8e4dd; color: #0a0a0a; }
+
+  .card-preview {
+    height: 240px;
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .card-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 0.5rem 0.85rem;
+    border-bottom: 1px solid rgba(232,228,221,0.1);
+    color: rgba(232,228,221,0.5);
+    transition: background 0.2s, color 0.2s;
+  }
+
+  .card-body { padding: 1.1rem 1.1rem 1.4rem; flex: 1; }
+  .card-body h3 { font-family: Georgia, serif; font-weight: 300; font-size: 1.05rem; margin-bottom: 0.5rem; letter-spacing: -0.01em; }
+  .card-body p { font-size: 0.68rem; color: rgba(232,228,221,0.5); line-height: 1.7; margin-bottom: 0.9rem; }
+  .tag-row { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+  .tag { font-size: 0.55rem; letter-spacing: 0.12em; text-transform: uppercase; border: 1px solid rgba(232,228,221,0.2); padding: 0.2rem 0.5rem; color: rgba(232,228,221,0.45); border-radius: 1px; }
+
+  /* ── DIRECTION A: EDITORIAL ── */
+  .preview-editorial {
+    background: #050505;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    padding: 1rem 1.1rem;
+    position: relative;
+  }
+  .prev-nav-a {
+    position: absolute; top: 0.8rem; left: 1.1rem; right: 1.1rem;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .prev-logo-a { font-family: Georgia, serif; font-size: 0.75rem; font-weight: 300; color: #e8e4dd; letter-spacing: 0.06em; }
+  .prev-ham { display: flex; flex-direction: column; gap: 3px; }
+  .prev-ham span { display: block; width: 16px; height: 1px; background: rgba(232,228,221,0.7); }
+  .prev-hero-a { }
+  .prev-h1-a {
+    font-family: Georgia, serif;
+    font-size: 2.4rem;
+    font-weight: 300;
+    line-height: 0.92;
+    letter-spacing: -0.03em;
+    color: #e8e4dd;
+    margin-bottom: 0.7rem;
+  }
+  .prev-h1-a em { font-style: italic; color: rgba(232,228,221,0.4); }
+  .prev-sub-a {
+    font-size: 0.55rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(232,228,221,0.35);
+    padding-top: 0.5rem;
+    border-top: 1px solid rgba(232,228,221,0.08);
+    display: flex; justify-content: space-between;
+  }
+  .prev-number-a {
+    position: absolute; top: 2.5rem; right: 1.1rem;
+    font-size: 4rem; font-family: Georgia, serif; font-weight: 300;
+    color: rgba(232,228,221,0.04); line-height: 1; letter-spacing: -0.05em;
+  }
+
+  /* ── DIRECTION B: BOLD BRUTALIST ── */
+  .preview-brutalist {
+    background: #0c0c0c;
+    position: relative; overflow: hidden;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    padding: 1rem 1.1rem;
+  }
+  .prev-stripe {
+    position: absolute; top: 0; left: 0; width: 100%; height: 3px;
+    background: #e8e4dd;
+  }
+  .prev-nav-b {
+    position: absolute; top: 1rem; left: 1.1rem; right: 1.1rem;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .prev-logo-b {
+    font-size: 0.6rem; letter-spacing: 0.3em; text-transform: uppercase;
+    color: rgba(232,228,221,0.9); font-weight: 400;
+  }
+  .prev-count { font-size: 0.6rem; letter-spacing: 0.1em; color: rgba(232,228,221,0.4); }
+  .prev-h1-b {
+    font-size: 3.2rem; font-weight: 900;
+    line-height: 0.88; letter-spacing: -0.04em;
+    text-transform: uppercase;
+    color: #e8e4dd;
+    margin-bottom: 0.6rem;
+    word-break: break-all;
+  }
+  .prev-accent-line {
+    width: 40px; height: 1px; background: #e8e4dd;
+    margin-bottom: 0.5rem;
+  }
+  .prev-sub-b {
+    font-size: 0.5rem; letter-spacing: 0.2em; text-transform: uppercase;
+    color: rgba(232,228,221,0.4);
+  }
+  .prev-corner {
+    position: absolute; bottom: 1rem; right: 1.1rem;
+    font-size: 0.5rem; letter-spacing: 0.1em;
+    color: rgba(232,228,221,0.2); text-transform: uppercase;
+  }
+
+  /* ── DIRECTION C: REFINED DARK ── */
+  .preview-refined {
+    background: #060606;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    padding: 1rem 1.1rem;
+    position: relative;
+  }
+  .prev-nav-c {
+    position: absolute; top: 0.8rem; left: 1.1rem; right: 1.1rem;
+    display: flex; justify-content: space-between;
+  }
+  .prev-logo-c { font-family: Georgia, serif; font-size: 0.8rem; font-style: italic; color: rgba(232,228,221,0.85); }
+  .prev-dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(232,228,221,0.5); margin-top: 4px; }
+  .prev-h1-c {
+    font-family: Georgia, serif;
+    font-size: 1.85rem;
+    font-weight: 300;
+    line-height: 1.05;
+    color: #e8e4dd;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.8rem;
+  }
+  .prev-h1-c span { color: rgba(232,228,221,0.28); }
+  .prev-bottom-c {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    padding-top: 0.6rem;
+    border-top: 1px solid rgba(232,228,221,0.07);
+  }
+  .prev-loc { font-size: 0.5rem; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(232,228,221,0.3); }
+  .prev-scroll-c {
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+  }
+  .prev-scroll-line {
+    width: 1px; height: 24px;
+    background: linear-gradient(to bottom, rgba(232,228,221,0.6), rgba(232,228,221,0));
+  }
+  .prev-circle { width: 4px; height: 4px; border-radius: 50%; background: rgba(232,228,221,0.5); }
+  .prev-grain-c {
+    position: absolute; inset: 0; pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    mix-blend-mode: overlay; opacity: 0.6;
+  }
+</style>
+
+<h2>Design Direction</h2>
+<p class="subtitle">Choose the overall aesthetic for Tarun's portfolio</p>
+
+<div class="cards">
+
+  <!-- A: Editorial -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-label">Option A</div>
+    <div class="card-preview preview-editorial">
+      <div class="prev-number-a">01</div>
+      <div class="prev-nav-a">
+        <span class="prev-logo-a">T—V</span>
+        <div class="prev-ham"><span></span><span></span><span></span></div>
+      </div>
+      <div class="prev-hero-a">
+        <div class="prev-h1-a">
+          Development<br/>
+          <em>&amp; Code</em><br/>
+          that matters.
+        </div>
+        <div class="prev-sub-a">
+          <span>Full Stack · Delhi, India</span>
+          <span>2019–Present</span>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Editorial Serif</h3>
+      <p>Large Cormorant serif headings, generous whitespace, slow scroll reveals. Sophisticated and literary — like Le Monde or a design magazine.</p>
+      <div class="tag-row">
+        <span class="tag">Cormorant</span>
+        <span class="tag">Lenis scroll</span>
+        <span class="tag">Line reveals</span>
+        <span class="tag">Minimal motion</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- B: Bold Brutalist -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-label">Option B</div>
+    <div class="card-preview preview-brutalist">
+      <div class="prev-stripe"></div>
+      <div class="prev-nav-b">
+        <span class="prev-logo-b">Tarun V.</span>
+        <span class="prev-count">04 Projects</span>
+      </div>
+      <div>
+        <div class="prev-h1-b">FULL<br/>STACK</div>
+        <div class="prev-accent-line"></div>
+        <div class="prev-sub-b">Developer · Engineer · Builder</div>
+      </div>
+      <div class="prev-corner">Delhi '25</div>
+    </div>
+    <div class="card-body">
+      <h3>Bold Brutalist</h3>
+      <p>Heavy type, stark grid, raw energy. Zero-padding philosophy — content bleeds to edges. Think Basement Studio, Fantasy Interactive.</p>
+      <div class="tag-row">
+        <span class="tag">Neue Haas</span>
+        <span class="tag">GSAP</span>
+        <span class="tag">Horizontal scroll</span>
+        <span class="tag">Bold weight</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- C: Refined Dark -->
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-label">Option C</div>
+    <div class="card-preview preview-refined">
+      <div class="prev-grain-c"></div>
+      <div class="prev-nav-c">
+        <span class="prev-logo-c">T—V</span>
+        <div class="prev-dot"></div>
+      </div>
+      <div>
+        <div class="prev-h1-c">
+          Development &amp; Code<br/>
+          <span>for those who</span><br/>
+          refuse to settle.
+        </div>
+        <div class="prev-bottom-c">
+          <span class="prev-loc">Delhi, India · Full Stack</span>
+          <div class="prev-scroll-c">
+            <div class="prev-scroll-line"></div>
+            <div class="prev-circle"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Refined Dark</h3>
+      <p>Current direction, elevated. Grain texture, clip-path menu, fluid serif + mono pairing. Ravi Klaassens / Locomotive Scroll energy.</p>
+      <div class="tag-row">
+        <span class="tag">Cormorant</span>
+        <span class="tag">Lenis</span>
+        <span class="tag">GSAP scroll</span>
+        <span class="tag">Grain overlay</span>
+      </div>
+    </div>
+  </div>
+
+</div>
