@@ -3,6 +3,7 @@
 
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
+import ScrollTrigger from "gsap/ScrollTrigger";
 
 const LINES = [
   { text: "Development", style: {} },
@@ -13,7 +14,11 @@ const LINES = [
 const SUB_WORDS = "Building products that are fast, precise, and built to last.".split(" ");
 
 export default function HeroSection() {
-  const lineRefs    = useRef<(HTMLSpanElement | null)[]>([]);
+  const sectionRef   = useRef<HTMLElement>(null);
+  const headlineRef  = useRef<HTMLDivElement>(null);
+  const subRowRef    = useRef<HTMLDivElement>(null);
+  const metaRowRef   = useRef<HTMLDivElement>(null);
+  const lineRefs     = useRef<(HTMLSpanElement | null)[]>([]);
   const metaLeftRef  = useRef<HTMLParagraphElement>(null);
   const metaRightRef = useRef<HTMLParagraphElement>(null);
   const subWordRefs  = useRef<(HTMLSpanElement | null)[]>([]);
@@ -22,6 +27,7 @@ export default function HeroSection() {
     let ctx: gsap.Context | undefined;
 
     const startAnimation = () => {
+      gsap.registerPlugin(ScrollTrigger);
       const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
       if (reducedMotion) {
@@ -50,7 +56,23 @@ export default function HeroSection() {
           ease: "expo.out",
           stagger: WORD_DUR * 0.2,
         }, 0.7);
-      });
+
+        // ── Scroll-out parallax ─────────────────────────────────────────────
+        const st = { trigger: sectionRef.current, start: "top top", end: "bottom top", scrub: true };
+
+        // Headline: fastest exit — drifts up + fades
+        if (headlineRef.current) {
+          gsap.to(headlineRef.current, { y: -90, opacity: 0, ease: "none", scrollTrigger: st });
+        }
+        // Sub row: slightly slower (depth layer)
+        if (subRowRef.current) {
+          gsap.to(subRowRef.current, { y: -48, opacity: 0, ease: "none", scrollTrigger: st });
+        }
+        // Meta row: slowest — barely moves (parallax depth)
+        if (metaRowRef.current) {
+          gsap.to(metaRowRef.current, { y: -24, opacity: 0, ease: "none", scrollTrigger: st });
+        }
+      }, sectionRef);
     };
 
     globalThis.addEventListener("preloader:done", startAnimation, { once: true });
@@ -68,6 +90,7 @@ export default function HeroSection() {
 
   return (
     <section
+      ref={sectionRef}
       id="hero"
       style={{
         minHeight: "100dvh",
@@ -78,7 +101,7 @@ export default function HeroSection() {
       }}
     >
       {/* Top meta row */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+      <div ref={metaRowRef} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div style={{ overflow: "hidden" }}>
           <p
             ref={metaLeftRef}
@@ -115,7 +138,7 @@ export default function HeroSection() {
 
       {/* Bottom block: headline + sub row */}
       <div>
-        <div style={{ marginBottom: "3.5rem" }}>
+        <div ref={headlineRef} style={{ marginBottom: "3.5rem" }}>
           {LINES.map((line, i) => (
             <div key={"key_" + i} style={{ overflow: "hidden", lineHeight: 0.95 }}>
               <span
@@ -138,6 +161,7 @@ export default function HeroSection() {
         </div>
 
         <div
+          ref={subRowRef}
           style={{
             display: "flex",
             justifyContent: "space-between",
@@ -220,6 +244,8 @@ export default function HeroSection() {
         }
         @media (prefers-reduced-motion: reduce) {
           .scroll-indicator { display: none; }
+          /* Belt-and-suspenders: explicitly stop the keyframe even if element becomes visible */
+          .scroll-indicator * { animation: none !important; }
         }
       `}</style>
     </section>
