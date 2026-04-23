@@ -35,19 +35,36 @@ export default function SkillsSection() {
 
     if (reducedMotion) {
       gsap.set(rowRefs.current, { opacity: 1, y: 0 });
+      rowRefs.current.forEach((row) => {
+        if (!row) return;
+        gsap.set(row.querySelectorAll("li"), { opacity: 1, y: 0 });
+      });
       return;
     }
 
     const ctx = gsap.context(() => {
       rowRefs.current.forEach((row, i) => {
         if (!row) return;
+        const items = row.querySelectorAll("li");
+        // Set li items invisible before their stagger fires
+        gsap.set(items, { opacity: 0, y: 10 });
+
         gsap.to(row, {
           opacity: 1,
           y: 0,
           duration: 0.65,
           ease: "expo.out",
-          scrollTrigger: { trigger: row, start: "top 88%" },
           delay: i * 0.07,
+          scrollTrigger: { trigger: row, start: "top 88%" },
+          onComplete: () => {
+            gsap.to(items, {
+              opacity: 1,
+              y: 0,
+              duration: 0.45,
+              ease: "expo.out",
+              stagger: 0.07,
+            });
+          },
         });
       });
     }, sectionRef);
