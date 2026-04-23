@@ -84,20 +84,25 @@ export default function WorksSection() {
       }
     }, containerRef);
 
-    // ── Pointer drag → scroll (Draggable conflicts with ScrollTrigger's x ownership)
-    // Instead: drag controls scroll position, ScrollTrigger derives x from that.
+    // ── Pointer drag → scroll with inertia
+    // Drag controls scroll position; ScrollTrigger derives x from scroll (no conflict).
     const strip = stripRef.current!;
     let dragStartX = 0;
     let dragStartScroll = 0;
     let dragging = false;
+    let lastScrollTarget = 0;
+    let lastMoveTime = 0;
+    let scrollVelocity = 0; // px/ms — used for inertia on release
 
     const onPointerDown = (e: PointerEvent) => {
       dragging = true;
       dragStartX = e.clientX;
       dragStartScroll = window.scrollY;
+      lastScrollTarget = window.scrollY;
+      lastMoveTime = performance.now();
+      scrollVelocity = 0;
       strip.setPointerCapture(e.pointerId);
       strip.style.cursor = "grabbing";
-      // Prevent Lenis from interfering with the drag scroll
       window.__lenis?.stop();
     };
 
@@ -106,13 +111,19 @@ export default function WorksSection() {
       const st = ScrollTrigger.getById("works-h");
       if (!st) return;
 
-      const dx = dragStartX - e.clientX; // px dragged left (+) or right (-)
+      const dx = dragStartX - e.clientX;
       const scrollRange = st.end - st.start;
       const horizTotal = Math.abs(strip.scrollWidth - window.innerWidth);
       const ratio = horizTotal > 0 ? scrollRange / horizTotal : 1;
-
       const target = Math.max(st.start, Math.min(st.end, dragStartScroll + dx * ratio));
-      // Set native scroll directly while Lenis is stopped
+
+      // Track scroll velocity for inertia
+      const now = performance.now();
+      const dt = now - lastMoveTime;
+      if (dt > 0) scrollVelocity = (target - lastScrollTarget) / dt;
+      lastScrollTarget = target;
+      lastMoveTime = now;
+
       window.scrollTo({ top: target, behavior: "instant" as ScrollBehavior });
     };
 
@@ -120,8 +131,22 @@ export default function WorksSection() {
       if (!dragging) return;
       dragging = false;
       strip.style.cursor = "grab";
+
+      const st = ScrollTrigger.getById("works-h");
       window.__lenis?.start();
-      ScrollTrigger.refresh();
+
+      // Project velocity forward → smooth deceleration via Lenis
+      if (st && Math.abs(scrollVelocity) > 0.05) {
+        const inertiaTarget = Math.max(
+          st.start,
+          Math.min(st.end, window.scrollY + scrollVelocity * 380)
+        );
+        const duration = Math.min(1.4, 0.25 + Math.abs(scrollVelocity) * 0.6);
+        window.__lenis?.scrollTo(inertiaTarget, {
+          duration,
+          easing: (t: number) => 1 - Math.pow(1 - t, 3),
+        });
+      }
     };
 
     strip.addEventListener("pointerdown", onPointerDown);
@@ -135,7 +160,7 @@ export default function WorksSection() {
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerup", onPointerUp);
       window.removeEventListener("pointercancel", onPointerUp);
-      window.__lenis?.start(); // ensure Lenis isn't stuck stopped
+      window.__lenis?.start();
     };
   }, []);
 
