@@ -4,11 +4,13 @@
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import ScrollTrigger from "gsap/ScrollTrigger";
+import Image from "next/image";
 
 // scale(1.35) → 17.5% overflow each side.
 // At card height 440px: overflow ≈ 77px each side.
 // Parallax travel: -PARALLAX_V → +PARALLAX_V = 120px total. 60px < 77px budget ✓
-const SCALE     = 1.35;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const SCALE = 1.35;
 const PARALLAX_V = 60;
 
 const services = [
@@ -56,8 +58,8 @@ export default function ServicesSection() {
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
 
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const isTouch       = window.matchMedia("(hover: none), (pointer: coarse)").matches;
+    const reducedMotion = globalThis.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const isTouch       = globalThis.matchMedia("(hover: none), (pointer: coarse)").matches;
 
     if (reducedMotion) return; // CSS scale(1.35) on .service-img-zoom handles static state
 
@@ -148,17 +150,15 @@ export default function ServicesSection() {
               ref={(el) => { parallaxRefs.current[i] = el; }}
               style={{ position: "absolute", inset: 0, willChange: "transform" }}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <Image
                 src={service.image}
                 alt={service.title}
                 draggable={false}
-                loading={i === 0 ? "eager" : "lazy"}
+                priority={i === 0}
                 onLoad={() => setLoadedImgs((prev) => ({ ...prev, [i]: true }))}
                 className="service-img-zoom"
+                fill
                 style={{
-                  width: "100%",
-                  height: "100%",
                   objectFit: "cover",
                   objectPosition: "center",
                   userSelect: "none",

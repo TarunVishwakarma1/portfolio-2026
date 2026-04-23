@@ -4,6 +4,7 @@
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import ScrollTrigger from "gsap/ScrollTrigger";
+import HeroBackground from "./HeroBackground";
 
 const LINES = [
   { text: "Development", style: {} },
@@ -28,7 +29,7 @@ export default function HeroSection() {
 
     const startAnimation = () => {
       gsap.registerPlugin(ScrollTrigger);
-      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const reducedMotion = globalThis.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
       if (reducedMotion) {
         gsap.set(lineRefs.current,     { y: 0, opacity: 1 });
@@ -58,7 +59,7 @@ export default function HeroSection() {
         }, 0.7);
 
         // ── Scroll-out parallax (desktop only — touch devices use native scroll) ─
-        const isTouch = window.matchMedia("(hover: none), (pointer: coarse)").matches;
+        const isTouch = globalThis.matchMedia("(hover: none), (pointer: coarse)").matches;
         if (!isTouch) {
           const st = { trigger: sectionRef.current, start: "top top", end: "bottom top", scrub: true };
 
@@ -93,13 +94,25 @@ export default function HeroSection() {
       ref={sectionRef}
       id="hero"
       style={{
+        position: "relative",
         minHeight: "100dvh",
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
-        padding: "6rem 6vw 5rem",
+        padding: "clamp(3.5rem, 6vw, 6rem) clamp(1.2rem, 6vw, 6rem) clamp(2.5rem, 5vw, 5rem)",
       }}
     >
+      {/* WebGL Background Animation */}
+      <HeroBackground />
+      {/* Dark Overlay for better text readability */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "linear-gradient(to bottom, rgba(6,6,6,0.5) 0%, rgba(6,6,6,0.9) 100%)",
+          zIndex: -1,
+        }}
+      />
       {/* Top meta row */}
       <div ref={metaRowRef} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div style={{ overflow: "hidden" }}>
@@ -119,7 +132,7 @@ export default function HeroSection() {
             Delhi, India
           </p>
         </div>
-        <div style={{ overflow: "hidden" }}>
+        <div style={{ overflow: "hidden" }} className="hero-meta-right">
           <p
             ref={metaRightRef}
             style={{
@@ -244,8 +257,11 @@ export default function HeroSection() {
         }
         @media (prefers-reduced-motion: reduce) {
           .scroll-indicator { display: none; }
-          /* Belt-and-suspenders: explicitly stop the keyframe even if element becomes visible */
           .scroll-indicator * { animation: none !important; }
+        }
+        @media (max-width: 640px) {
+          .hero-meta-right { display: none; }
+          .scroll-indicator { display: none; }
         }
       `}</style>
     </section>

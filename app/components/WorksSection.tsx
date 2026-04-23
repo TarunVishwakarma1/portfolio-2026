@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import gsap from "gsap";
 import ScrollTrigger from "gsap/ScrollTrigger";
+import Image from "next/image";
 
 const projects = [
   {
@@ -334,18 +335,15 @@ export default function WorksSection() {
               style={{ width: "100%", height: "320px", marginBottom: "1.75rem", background: "var(--fg-muted)" }}
             >
               <div className={`img-skeleton${loadedImages[idx] ? " loaded" : ""}`} />
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <Image
                 ref={(el) => { imageRefs.current[idx] = el; }}
                 src={project.image}
                 alt={project.title}
                 draggable={false}
-                loading={idx === 0 ? "eager" : "lazy"}
+                priority={idx === 0}
                 onLoad={() => setLoadedImages((prev) => ({ ...prev, [idx]: true }))}
+                fill
                 style={{
-                  display: "block",
-                  width: "100%",
-                  height: "100%",
                   objectFit: "cover",
                   objectPosition: "center",
                   transform: `scale(${SCALE})`,
