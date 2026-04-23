@@ -15,9 +15,9 @@ gsap.registerPlugin(ScrollTrigger);
 
 export default function SmoothScroll({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   useEffect(() => {
     const lenis = new Lenis({
       lerp: 0.08,

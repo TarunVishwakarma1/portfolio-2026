@@ -15,6 +15,11 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* Kill default cursor everywhere on desktop — custom cursor takes over */
+@media (hover: hover) and (pointer: fine) {
+  *, *::before, *::after { cursor: none !important; }
+}
+
 ::selection {
   background: var(--accent);
   color: var(--bg);
@@ -29,7 +34,6 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
-  cursor: none; /* custom cursor replaces default */
 }
 
 /* ── Grain overlay ── */
@@ -64,6 +68,34 @@ body::after {
   width: 36px;
   height: 36px;
   background: var(--fg);
+}
+/* Hide dot on touch / coarse-pointer devices */
+@media (hover: none), (pointer: coarse) {
+  .cursor-dot  { display: none; }
+  .cursor-ring { display: none; }
+}
+
+/* ── Cursor ring (trailing outer circle) ── */
+.cursor-ring {
+  position: fixed;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(237, 234, 227, 0.4);
+  pointer-events: none;
+  z-index: 9998;
+  transform: translate(-50%, -50%);
+  transition: width 0.35s var(--ease-expo),
+              height 0.35s var(--ease-expo),
+              border-color 0.35s,
+              opacity 0.35s;
+  will-change: transform;
+}
+.cursor-ring.cursor-ring-hover {
+  width: 64px;
+  height: 64px;
+  border-color: var(--accent);
+  opacity: 0.7;
 }
 
 /* ── Font helpers ── */
@@ -115,7 +147,13 @@ body::after {
               color 0.25s;
 }
 .menu-overlay.open .menu-nav-item { opacity: 1; transform: translateY(0); }
-.menu-nav-item:hover { color: var(--fg-dim); }
+.menu-nav-item:hover { color: var(--accent); }
+
+/* Overlay social links amber on hover */
+.menu-footer .lw-trigger {
+  transition: color 0.25s;
+}
+.menu-footer .lw-trigger:hover { color: var(--accent); }
 
 .menu-footer {
   margin-top: auto;
@@ -167,6 +205,15 @@ body::after {
 .link-amber:hover { color: var(--accent); transition-property: color; transition-duration: 0.25s; }
 
 /* ── Works horizontal strip ── */
+#work,
+#work *,
+.works-strip,
+.works-strip *,
+.project-card,
+.project-card * {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
 .works-strip {
   display: flex;
   align-items: stretch;
@@ -202,6 +249,73 @@ body::after {
 }
 .project-card:hover::before { opacity: 1; }
 
+/* ── Image skeleton shimmer ── */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+.img-skeleton {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    var(--fg-muted) 25%,
+    rgba(237, 234, 227, 0.06) 50%,
+    var(--fg-muted) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+  z-index: 1;
+}
+.img-skeleton.loaded { opacity: 0; }
+
+/* ── Card image CTA overlay ── */
+.project-card-img-wrap {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  height: 320px;
+}
+.project-card-cta {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1.25rem 1.5rem;
+  background: linear-gradient(to top, rgba(6,6,6,0.85) 0%, transparent 100%);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transform: translateY(100%);
+  opacity: 0;
+  transition:
+    transform 0.55s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity   0.4s  cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+.project-card:hover .project-card-cta {
+  transform: translateY(0);
+  opacity: 1;
+}
+.project-card-cta-label {
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--fg);
+}
+.project-card-cta-arrow {
+  font-size: 1.1rem;
+  color: var(--accent);
+  transform: rotate(-45deg);
+  display: inline-block;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.project-card:hover .project-card-cta-arrow {
+  transform: rotate(-45deg) translate(3px, -3px);
+}
+
 /* ── Skills grid ── */
 .skills-row {
   opacity: 0;
@@ -226,6 +340,11 @@ body::after {
 .service-card:hover {
   border-color: rgba(237, 234, 227, 0.25);
   background: rgba(237, 234, 227, 0.02);
+}
+
+/* Image-backed service card */
+.service-card-wrap:hover {
+  border-color: rgba(237, 234, 227, 0.35) !important;
 }
 
 /* ── About section layout ── */

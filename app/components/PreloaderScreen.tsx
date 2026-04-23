@@ -5,38 +5,56 @@ import { useEffect, useRef } from "react";
 import gsap from "gsap";
 
 export default function PreloaderScreen() {
-  const overlayRef = useRef<HTMLDivElement>(null);
-  const bgRef = useRef<HTMLDivElement>(null);
+  const overlayRef    = useRef<HTMLDivElement>(null);
+  const bgRef         = useRef<HTMLDivElement>(null);
   const tContainerRef = useRef<HTMLDivElement>(null);
-  const tRef = useRef<HTMLSpanElement>(null);
-  const dashRef = useRef<HTMLSpanElement>(null);
+  const tRef          = useRef<HTMLSpanElement>(null);
+  const dashRef       = useRef<HTMLSpanElement>(null);
   const vContainerRef = useRef<HTMLDivElement>(null);
-  const vRef = useRef<HTMLSpanElement>(null);
+  const vRef          = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
-    const overlay = overlayRef.current;
-    const bg = bgRef.current;
+    const overlay    = overlayRef.current;
+    const bg         = bgRef.current;
     const tContainer = tContainerRef.current;
-    const t = tRef.current;
-    const dash = dashRef.current;
+    const t          = tRef.current;
+    const dash       = dashRef.current;
     const vContainer = vContainerRef.current;
-    const v = vRef.current;
+    const v          = vRef.current;
     if (!overlay || !bg || !tContainer || !t || !dash || !vContainer || !v) return;
 
     document.body.style.overflow = "hidden";
 
-    // ── Set initial GSAP states (avoid inline transform conflicts) ──
+    const finish = () => {
+      document.body.style.overflow = "";
+      gsap.to(overlay, {
+        opacity: 0,
+        duration: 0.35,
+        ease: "none",
+        onComplete: () => {
+          overlay.style.display = "none";
+          globalThis.dispatchEvent(new CustomEvent("preloader:done"));
+        },
+      });
+    };
+
+    // ── Reduced motion: skip straight to done ──
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      finish();
+      return;
+    }
+
+    // ── SVG clip-path: evenodd hole cut into the bg overlay ──
     gsap.set([t, v], { yPercent: 110 });
     gsap.set(dash, { autoAlpha: 0 });
 
-    // ── SVG clip-path: evenodd hole cut into the bg overlay ──
     const svgNS = "http://www.w3.org/2000/svg";
-    const svg = document.createElementNS(svgNS, "svg");
+    const svg   = document.createElementNS(svgNS, "svg");
     svg.style.cssText = "position:absolute;width:0;height:0;overflow:hidden";
 
-    const defs = document.createElementNS(svgNS, "defs");
+    const defs   = document.createElementNS(svgNS, "defs");
     const clipId = "preloader-hole";
-    const clip = document.createElementNS(svgNS, "clipPath");
+    const clip   = document.createElementNS(svgNS, "clipPath");
     clip.setAttribute("id", clipId);
     clip.setAttribute("clipPathUnits", "userSpaceOnUse");
 
@@ -60,33 +78,27 @@ export default function PreloaderScreen() {
       if (holeW <= 0 || holeH <= 0) return outer;
       const x = (W - holeW) / 2;
       const y = (H - holeH) / 2;
-      // evenodd: inner rect punches hole through outer rect
       return `${outer}M${x} ${y}H${x + holeW}V${y + holeH}H${x}Z`;
     };
 
     path.setAttribute("d", buildPath(0, 0));
 
     const hole = { w: 0, h: 0 };
-    const tl = gsap.timeline();
+    const tl   = gsap.timeline();
 
-    // ── Phase 1: T and V slide up from mask (0 → 0.9s) ──
-    tl.to([t, v], {
-      yPercent: 0,
-      duration: 0.9,
-      ease: "expo.out",
-      stagger: 0.07,
-    }, 0);
+    // Phase 1: T and V slide up
+    tl.to([t, v], { yPercent: 0, duration: 0.9, ease: "expo.out", stagger: 0.07 }, 0);
     tl.to(dash, { opacity: 1, duration: 0.35, ease: "none" }, 0.28);
 
-    // ── Hold ──
+    // Hold
     tl.to({}, { duration: 0.45 });
 
-    // ── Phase 2: T and V split apart ──
+    // Phase 2: T and V split apart
     tl.to(tContainer, { x: () => -W * 0.2, duration: 0.95, ease: "expo.inOut" }, ">");
     tl.to(vContainer, { x: () =>  W * 0.2, duration: 0.95, ease: "expo.inOut" }, "<");
     tl.to(dash, { opacity: 0, duration: 0.2, ease: "none" }, "<");
 
-    // ── Phase 3: Hole opens — small square ──
+    // Phase 3: Hole opens — small square
     tl.to(hole, {
       w: Math.min(W, H) * 0.1,
       h: Math.min(W, H) * 0.1,
@@ -95,7 +107,7 @@ export default function PreloaderScreen() {
       onUpdate: () => path.setAttribute("d", buildPath(hole.w, hole.h)),
     }, "<+0.22");
 
-    // ── Hole expands to portrait rectangle ──
+    // Hole expands to portrait rectangle
     tl.to(hole, {
       w: W * 0.55,
       h: H * 0.58,
@@ -104,7 +116,7 @@ export default function PreloaderScreen() {
       onUpdate: () => path.setAttribute("d", buildPath(hole.w, hole.h)),
     }, ">");
 
-    // ── Hole blows out to full viewport + letters exit ──
+    // Hole blows out to full viewport + letters exit
     tl.to(hole, {
       w: W + 8,
       h: H + 8,
@@ -116,12 +128,8 @@ export default function PreloaderScreen() {
     tl.to(tContainer, { x: () => -W * 1.1, duration: 0.5, ease: "expo.in" }, "<");
     tl.to(vContainer, { x: () =>  W * 1.1, duration: 0.5, ease: "expo.in" }, "<");
 
-    // ── Done ──
-    tl.call(() => {
-      document.body.style.overflow = "";
-      overlay.style.display = "none";
-      window.dispatchEvent(new CustomEvent("preloader:done"));
-    });
+    // Polish: fade out overlay instead of instant display:none
+    tl.call(finish);
   }, []);
 
   const letterStyle: React.CSSProperties = {
@@ -146,7 +154,6 @@ export default function PreloaderScreen() {
         justifyContent: "center",
       }}
     >
-      {/* Dark bg — the SVG hole is cut through this */}
       <div
         ref={bgRef}
         style={{
@@ -168,9 +175,7 @@ export default function PreloaderScreen() {
           fontSize: "clamp(5rem, 16vw, 15rem)",
         }}
       >
-        <span ref={tRef} className="font-display" style={letterStyle}>
-          T
-        </span>
+        <span ref={tRef} className="font-display" style={letterStyle}>T</span>
       </div>
 
       {/* — */}
@@ -185,7 +190,7 @@ export default function PreloaderScreen() {
           color: "var(--fg)",
           position: "relative",
           zIndex: 1,
-          visibility: "hidden", // GSAP autoAlpha will reveal
+          visibility: "hidden",
         }}
       >
         —
@@ -202,9 +207,7 @@ export default function PreloaderScreen() {
           fontSize: "clamp(5rem, 16vw, 15rem)",
         }}
       >
-        <span ref={vRef} className="font-display" style={letterStyle}>
-          V
-        </span>
+        <span ref={vRef} className="font-display" style={letterStyle}>V</span>
       </div>
     </div>
   );

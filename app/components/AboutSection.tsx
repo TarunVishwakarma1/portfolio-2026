@@ -11,47 +11,78 @@ const stats = [
   { value: null, symbol: "∞", label: "Curiosity" },
 ];
 
+const HEADING_LINES = [
+  { text: "Precision in", italic: false },
+  { text: "every line of", italic: false },
+  { text: "code.", italic: true },
+];
+
+const PARA1_WORDS = "I'm Tarun — a senior full stack developer who builds software that performs under pressure. Five years of shipping products that users actually use, for teams that can't afford to settle for less.".split(" ");
+const PARA2_WORDS = "I work across the full stack: Next.js on the front, Node.js or Go on the back, deployed on edge infrastructure built to scale. Clean code, fast iterations, zero excuses.".split(" ");
+
+const WORD_DUR = 0.7;
+
 export default function AboutSection() {
-  const sectionRef = useRef<HTMLElement>(null);
-  const headingRef = useRef<HTMLHeadingElement>(null);
-  const textRef = useRef<HTMLDivElement>(null);
-  const statRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const counterRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  const sectionRef      = useRef<HTMLElement>(null);
+  const headingLineRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  const para1WordRefs   = useRef<(HTMLSpanElement | null)[]>([]);
+  const para2WordRefs   = useRef<(HTMLSpanElement | null)[]>([]);
+  const para1Ref        = useRef<HTMLParagraphElement>(null);
+  const para2Ref        = useRef<HTMLParagraphElement>(null);
+  const statRefs        = useRef<(HTMLDivElement | null)[]>([]);
+  const counterRefs     = useRef<(HTMLSpanElement | null)[]>([]);
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
 
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (reducedMotion) {
+      gsap.set(headingLineRefs.current, { y: 0 });
+      gsap.set(para1WordRefs.current,   { y: 0 });
+      gsap.set(para2WordRefs.current,   { y: 0 });
+      // Set counters to final values immediately
+      counterRefs.current.forEach((el, i) => {
+        if (!el) return;
+        const s = stats[i];
+        if (s.value !== null) el.textContent = s.value + s.suffix!;
+      });
+      gsap.set(statRefs.current, { opacity: 1, y: 0 });
+      return;
+    }
+
     const ctx = gsap.context(() => {
-      // Heading reveal
-      if (headingRef.current) {
-        gsap.from(headingRef.current, {
-          y: 40,
-          opacity: 0,
-          duration: 0.9,
+      headingLineRefs.current.forEach((line, i) => {
+        if (!line) return;
+        gsap.to(line, {
+          y: 0,
+          duration: 0.85,
           ease: "expo.out",
-          scrollTrigger: {
-            trigger: headingRef.current,
-            start: "top 85%",
-          },
+          delay: i * 0.1,
+          scrollTrigger: { trigger: line, start: "top 88%" },
+        });
+      });
+
+      if (para1Ref.current) {
+        gsap.to(para1WordRefs.current, {
+          y: 0,
+          duration: WORD_DUR,
+          ease: "expo.out",
+          stagger: WORD_DUR * 0.2,
+          scrollTrigger: { trigger: para1Ref.current, start: "top 88%" },
         });
       }
 
-      // Text block reveal
-      if (textRef.current) {
-        gsap.from(textRef.current.children, {
-          y: 24,
-          opacity: 0,
-          duration: 0.7,
+      if (para2Ref.current) {
+        gsap.to(para2WordRefs.current, {
+          y: 0,
+          duration: WORD_DUR,
           ease: "expo.out",
-          stagger: 0.1,
-          scrollTrigger: {
-            trigger: textRef.current,
-            start: "top 85%",
-          },
+          stagger: WORD_DUR * 0.2,
+          scrollTrigger: { trigger: para2Ref.current, start: "top 88%" },
         });
       }
 
-      // Counter animation
       statRefs.current.forEach((stat, i) => {
         if (!stat) return;
         const counter = counterRefs.current[i];
@@ -63,13 +94,8 @@ export default function AboutSection() {
             val: targetValue,
             duration: 1.2,
             ease: "expo.out",
-            onUpdate() {
-              counter.textContent = Math.round(obj.val) + stats[i].suffix!;
-            },
-            scrollTrigger: {
-              trigger: stat,
-              start: "top 85%",
-            },
+            onUpdate() { counter.textContent = Math.round(obj.val) + stats[i].suffix!; },
+            scrollTrigger: { trigger: stat, start: "top 85%" },
           });
         }
 
@@ -79,10 +105,7 @@ export default function AboutSection() {
           duration: 0.6,
           ease: "expo.out",
           delay: i * 0.08,
-          scrollTrigger: {
-            trigger: stat,
-            start: "top 88%",
-          },
+          scrollTrigger: { trigger: stat, start: "top 88%" },
         });
       });
     }, sectionRef);
@@ -113,8 +136,8 @@ export default function AboutSection() {
         >
           About
         </p>
+
         <h2
-          ref={headingRef}
           className="font-display"
           style={{
             fontSize: "clamp(2rem, 4vw, 4rem)",
@@ -123,33 +146,70 @@ export default function AboutSection() {
             letterSpacing: "-0.01em",
           }}
         >
-          Precision in
-          <br />
-          every line of
-          <br />
-          <em style={{ fontStyle: "italic", color: "var(--accent)" }}>code.</em>
+          {HEADING_LINES.map((line, i) => (
+            <span key={i} style={{ display: "block", overflow: "hidden" }}>
+              <span
+                ref={(el) => { headingLineRefs.current[i] = el; }}
+                style={{
+                  display: "block",
+                  transform: "translateY(110%)",
+                  fontStyle: line.italic ? "italic" : "normal",
+                  color: line.italic ? "var(--accent)" : undefined,
+                }}
+              >
+                {line.text}
+              </span>
+            </span>
+          ))}
         </h2>
       </div>
 
       {/* Right: bio + stats */}
       <div>
-        <div
-          ref={textRef}
-          style={{ display: "flex", flexDirection: "column", gap: "1.25rem", marginBottom: "2.5rem" }}
-        >
-          <p style={{ fontSize: "0.85rem", lineHeight: 1.75, color: "var(--fg-dim)" }}>
-            I&apos;m Tarun — a senior full stack developer who builds software that performs under
-            pressure. Five years of shipping products that users actually use, for teams that
-            can&apos;t afford to settle for less.
+        <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem", marginBottom: "2.5rem" }}>
+          <p ref={para1Ref} style={{ fontSize: "0.85rem", lineHeight: 1.75, color: "var(--fg-dim)" }}>
+            {PARA1_WORDS.map((word, i) => (
+              <span
+                key={i}
+                style={{
+                  display: "inline-block",
+                  overflow: "hidden",
+                  verticalAlign: "bottom",
+                  marginRight: i < PARA1_WORDS.length - 1 ? "0.28em" : 0,
+                }}
+              >
+                <span
+                  ref={(el) => { para1WordRefs.current[i] = el; }}
+                  style={{ display: "inline-block", transform: "translateY(110%)" }}
+                >
+                  {word}
+                </span>
+              </span>
+            ))}
           </p>
-          <p style={{ fontSize: "0.85rem", lineHeight: 1.75, color: "var(--fg-dim)" }}>
-            I work across the full stack: Next.js on the front, Node.js or Go on the back,
-            deployed on edge infrastructure built to scale. Clean code, fast iterations, zero
-            excuses.
+
+          <p ref={para2Ref} style={{ fontSize: "0.85rem", lineHeight: 1.75, color: "var(--fg-dim)" }}>
+            {PARA2_WORDS.map((word, i) => (
+              <span
+                key={i}
+                style={{
+                  display: "inline-block",
+                  overflow: "hidden",
+                  verticalAlign: "bottom",
+                  marginRight: i < PARA2_WORDS.length - 1 ? "0.28em" : 0,
+                }}
+              >
+                <span
+                  ref={(el) => { para2WordRefs.current[i] = el; }}
+                  style={{ display: "inline-block", transform: "translateY(110%)" }}
+                >
+                  {word}
+                </span>
+              </span>
+            ))}
           </p>
         </div>
 
-        {/* Stats */}
         <div
           style={{
             display: "flex",
@@ -159,18 +219,10 @@ export default function AboutSection() {
           }}
         >
           {stats.map((stat, i) => (
-            <div
-              key={stat.label}
-              ref={(el) => { statRefs.current[i] = el; }}
-            >
-              <p
-                className="font-display"
-                style={{ fontSize: "2.5rem", fontWeight: 300, lineHeight: 1 }}
-              >
+            <div key={stat.label} ref={(el) => { statRefs.current[i] = el; }}>
+              <p className="font-display" style={{ fontSize: "2.5rem", fontWeight: 300, lineHeight: 1 }}>
                 {stat.value !== null ? (
-                  <span ref={(el) => { counterRefs.current[i] = el; }}>
-                    0{stat.suffix}
-                  </span>
+                  <span ref={(el) => { counterRefs.current[i] = el; }}>0{stat.suffix}</span>
                 ) : (
                   <span ref={(el) => { counterRefs.current[i] = el; }}>{stat.symbol}</span>
                 )}

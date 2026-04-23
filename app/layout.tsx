@@ -97,6 +97,14 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
+      <head>
+        {/* Runs before first paint — disables browser scroll restoration */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `if('scrollRestoration' in history){history.scrollRestoration='manual';}window.scrollTo(0,0);`,
+          }}
+        />
+      </head>
       <body className={`${geistMono.variable} ${cormorant.variable} antialiased`}>
         <script
           type="application/ld+json"

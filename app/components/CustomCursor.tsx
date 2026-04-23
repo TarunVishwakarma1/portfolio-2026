@@ -4,44 +4,61 @@
 import { useEffect, useRef } from "react";
 
 export default function CustomCursor() {
-  const dotRef = useRef<HTMLDivElement>(null);
+  const dotRef  = useRef<HTMLDivElement>(null);
+  const ringRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const dot = dotRef.current;
-    if (!dot) return;
+    // No custom cursor on touch / mobile devices
+    if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
 
-    let mouseX = 0;
-    let mouseY = 0;
-    let curX = 0;
-    let curY = 0;
+    const dot  = dotRef.current;
+    const ring = ringRef.current;
+    if (!dot || !ring) return;
+
+    let mouseX = 0, mouseY = 0;
+    let dotX   = 0, dotY  = 0;
+    let ringX  = 0, ringY = 0;
     let rafId: number;
+    let hovering = false;
 
     const onMove = (e: MouseEvent) => {
       mouseX = e.clientX;
       mouseY = e.clientY;
     };
 
-    const onEnterLink = () => dot.classList.add("cursor-hover");
-    const onLeaveLink = () => dot.classList.remove("cursor-hover");
+    const onEnterLink = () => {
+      hovering = true;
+      dot.classList.add("cursor-hover");
+      ring.classList.add("cursor-ring-hover");
+    };
+    const onLeaveLink = () => {
+      hovering = false;
+      dot.classList.remove("cursor-hover");
+      ring.classList.remove("cursor-ring-hover");
+    };
 
-    // Track attached elements so we can remove listeners on cleanup
     const attached = new Set<Element>();
-
     const attachToElement = (el: Element) => {
       if (attached.has(el)) return;
       el.addEventListener("mouseenter", onEnterLink);
       el.addEventListener("mouseleave", onLeaveLink);
       attached.add(el);
     };
-
     const attachToAll = () => {
       document.querySelectorAll("a, button").forEach(attachToElement);
     };
 
     const loop = () => {
-      curX += (mouseX - curX) * 0.12;
-      curY += (mouseY - curY) * 0.12;
-      dot.style.transform = `translate(calc(${curX}px - 50%), calc(${curY}px - 50%))`;
+      // Dot: tight follow
+      dotX  += (mouseX - dotX)  * 0.18;
+      dotY  += (mouseY - dotY)  * 0.18;
+      // Ring: lazy follow
+      ringX += (mouseX - ringX) * 0.07;
+      ringY += (mouseY - ringY) * 0.07;
+
+      dot.style.transform  = `translate(calc(${dotX}px  - 50%), calc(${dotY}px  - 50%))`;
+      ring.style.transform = `translate(calc(${ringX}px - 50%), calc(${ringY}px - 50%))`;
+
       rafId = requestAnimationFrame(loop);
     };
 
@@ -49,7 +66,6 @@ export default function CustomCursor() {
     rafId = requestAnimationFrame(loop);
     attachToAll();
 
-    // Only scan newly added nodes — not the entire document on every mutation
     const observer = new MutationObserver((records) => {
       records.forEach((record) => {
         record.addedNodes.forEach((node) => {
@@ -67,7 +83,6 @@ export default function CustomCursor() {
       window.removeEventListener("mousemove", onMove);
       cancelAnimationFrame(rafId);
       observer.disconnect();
-      // Remove hover listeners from all tracked elements
       attached.forEach((el) => {
         el.removeEventListener("mouseenter", onEnterLink);
         el.removeEventListener("mouseleave", onLeaveLink);
@@ -76,5 +91,10 @@ export default function CustomCursor() {
     };
   }, []);
 
-  return <div ref={dotRef} className="cursor-dot" />;
+  return (
+    <>
+      <div ref={dotRef}  className="cursor-dot" />
+      <div ref={ringRef} className="cursor-ring" />
+    </>
+  );
 }

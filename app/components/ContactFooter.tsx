@@ -2,24 +2,28 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import Link from "next/link";
 import gsap from "gsap";
 import ScrollTrigger from "gsap/ScrollTrigger";
 import LiveClock from "./LiveClock";
 import LinkWipe from "./LinkWipe";
 
 const socials = [
-  { label: "GitHub", href: "https://github.com/TarunVishwakarma1" },
+  { label: "GitHub",   href: "https://github.com/TarunVishwakarma1" },
   { label: "LinkedIn", href: "https://www.linkedin.com/in/tarunvishwakarma28/" },
-  { label: "Twitter", href: "https://x.com/Assassingod5" },
+  { label: "Twitter",  href: "https://x.com/Assassingod5" },
 ];
 
 export default function ContactFooter() {
   const sectionRef = useRef<HTMLElement>(null);
-  const emailRef = useRef<HTMLAnchorElement>(null);
-  const labelRef = useRef<HTMLParagraphElement>(null);
+  const emailRef   = useRef<HTMLAnchorElement>(null);
+  const labelRef   = useRef<HTMLParagraphElement>(null);
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
+
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reducedMotion) return; // Elements already at final state — no animation needed
 
     const ctx = gsap.context(() => {
       if (labelRef.current) {
@@ -54,7 +58,6 @@ export default function ContactFooter() {
         borderTop: "1px solid var(--border)",
       }}
     >
-      {/* CTA */}
       <p
         ref={labelRef}
         style={{
@@ -68,7 +71,7 @@ export default function ContactFooter() {
         Let&apos;s work together
       </p>
 
-      <a
+      <Link
         ref={emailRef}
         href="mailto:hello@tarunvishwakarma.dev"
         className="font-display link-amber lw-trigger"
@@ -82,9 +85,8 @@ export default function ContactFooter() {
         }}
       >
         <LinkWipe>hello@tarunvishwakarma.dev</LinkWipe>
-      </a>
+      </Link>
 
-      {/* Bottom bar */}
       <div
         style={{
           display: "flex",
@@ -109,30 +111,20 @@ export default function ContactFooter() {
 
         <div style={{ display: "flex", gap: "2rem" }}>
           {socials.map((s) => (
-            <a
+            <Link
               key={s.label}
               href={s.href}
               target="_blank"
               rel="noopener noreferrer"
               className="link-amber lw-trigger"
-              style={{
-                fontSize: "0.7rem",
-                letterSpacing: "0.12em",
-                textTransform: "uppercase",
-              }}
+              style={{ fontSize: "0.7rem", letterSpacing: "0.12em", textTransform: "uppercase" }}
             >
               <LinkWipe>{s.label}</LinkWipe>
-            </a>
+            </Link>
           ))}
         </div>
 
-        <p
-          style={{
-            fontSize: "0.7rem",
-            color: "var(--fg-dim)",
-            letterSpacing: "0.1em",
-          }}
-        >
+        <p style={{ fontSize: "0.7rem", color: "var(--fg-dim)", letterSpacing: "0.1em" }}>
           © {new Date().getFullYear()} Tarun Vishwakarma
         </p>
       </div>

@@ -26,10 +26,17 @@ const skills = [
 
 export default function SkillsSection() {
   const sectionRef = useRef<HTMLElement>(null);
-  const rowRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const rowRefs    = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
+
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (reducedMotion) {
+      gsap.set(rowRefs.current, { opacity: 1, y: 0 });
+      return;
+    }
 
     const ctx = gsap.context(() => {
       rowRefs.current.forEach((row, i) => {
@@ -39,10 +46,7 @@ export default function SkillsSection() {
           y: 0,
           duration: 0.65,
           ease: "expo.out",
-          scrollTrigger: {
-            trigger: row,
-            start: "top 88%",
-          },
+          scrollTrigger: { trigger: row, start: "top 88%" },
           delay: i * 0.07,
         });
       });
@@ -60,7 +64,6 @@ export default function SkillsSection() {
         borderTop: "1px solid var(--border)",
       }}
     >
-      {/* Label */}
       <p
         style={{
           fontSize: "0.7rem",
@@ -73,7 +76,6 @@ export default function SkillsSection() {
         Stack
       </p>
 
-      {/* Skills grid */}
       <div
         style={{
           display: "grid",

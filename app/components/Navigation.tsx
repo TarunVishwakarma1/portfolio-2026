@@ -2,13 +2,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import LinkWipe from "./LinkWipe";
 
 const navLinks = [
-  { label: "Work", href: "#work" },
-  { label: "Stack", href: "#skills" },
-  { label: "About", href: "#about" },
-  { label: "Contact", href: "#contact" },
+  { label: "Work",     href: "#work" },
+  { label: "Stack",    href: "#skills" },
+  { label: "Services", href: "#services" },
+  { label: "About",    href: "#about" },
+  { label: "Contact",  href: "#contact" },
 ];
 
 const socialLinks = [
@@ -54,7 +56,7 @@ export default function Navigation() {
           borderBottom: scrolled ? "1px solid var(--border)" : "1px solid transparent",
         }}
       >
-        <a
+        <Link
           href="/"
           style={{
             fontFamily: "var(--font-cormorant), Georgia, serif",
@@ -68,7 +70,7 @@ export default function Navigation() {
           }}
         >
           T—V
-        </a>
+        </Link>
 
         <button
           onClick={() => setIsOpen((v) => !v)}
@@ -76,7 +78,6 @@ export default function Navigation() {
           style={{
             background: "none",
             border: "none",
-            cursor: "none",
             padding: "6px",
             display: "flex",
             flexDirection: "column",
@@ -110,7 +111,7 @@ export default function Navigation() {
 
         <nav style={{ flex: 1 }}>
           {navLinks.map((item, i) => (
-            <a
+            <Link
               key={item.label}
               href={item.href}
               className="menu-nav-item lw-trigger"
@@ -122,14 +123,14 @@ export default function Navigation() {
               }}
             >
               <LinkWipe>{item.label}</LinkWipe>
-            </a>
+            </Link>
           ))}
         </nav>
 
         <div className="menu-footer">
           <div style={{ display: "flex", gap: "2rem" }}>
             {socialLinks.map((s) => (
-              <a
+              <Link
                 key={s.label}
                 href={s.href}
                 target="_blank"
@@ -144,7 +145,7 @@ export default function Navigation() {
                 }}
               >
                 <LinkWipe>{s.label}</LinkWipe>
-              </a>
+              </Link>
             ))}
           </div>
           <p
