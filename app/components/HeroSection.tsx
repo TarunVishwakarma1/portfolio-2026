@@ -16,33 +16,50 @@ export default function HeroSection() {
   const subRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const ctx = gsap.context(() => {
-      const tl = gsap.timeline({ delay: 0.15 });
+    let ctx: gsap.Context | undefined;
 
-      // Mask reveal: lines slide up from translateY(110%)
-      lineRefs.current.forEach((line, i) => {
-        if (!line) return;
+    const startAnimation = () => {
+      ctx = gsap.context(() => {
+        const tl = gsap.timeline({ delay: 0.1 });
+
+        // Mask reveal: lines slide up from translateY(110%)
+        lineRefs.current.forEach((line, i) => {
+          if (!line) return;
+          tl.to(
+            line,
+            {
+              y: 0,
+              opacity: 1,
+              duration: 0.9,
+              ease: "expo.out",
+            },
+            i * 0.13
+          );
+        });
+
+        // Fade in meta rows after lines
         tl.to(
-          line,
-          {
-            y: 0,
-            opacity: 1,
-            duration: 0.9,
-            ease: "expo.out",
-          },
-          i * 0.13
+          [metaRef.current, subRef.current],
+          { opacity: 1, duration: 0.7, ease: "expo.out", stagger: 0.08 },
+          "-=0.3"
         );
       });
+    };
 
-      // Fade in meta rows after lines
-      tl.to(
-        [metaRef.current, subRef.current],
-        { opacity: 1, duration: 0.7, ease: "expo.out", stagger: 0.08 },
-        "-=0.3"
-      );
-    });
+    // Wait for preloader to finish before animating hero
+    window.addEventListener("preloader:done", startAnimation, { once: true });
 
-    return () => ctx.revert();
+    // Safety fallback — start after 4s if event never fires
+    const fallback = setTimeout(() => {
+      window.removeEventListener("preloader:done", startAnimation);
+      startAnimation();
+    }, 4000);
+
+    return () => {
+      clearTimeout(fallback);
+      window.removeEventListener("preloader:done", startAnimation);
+      ctx?.revert();
+    };
   }, []);
 
   return (

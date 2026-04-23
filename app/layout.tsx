@@ -4,6 +4,7 @@ import { Geist_Mono, Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
 import SmoothScroll from "./components/SmoothScroll";
 import CustomCursor from "./components/CustomCursor";
+import PreloaderScreen from "./components/PreloaderScreen";
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
@@ -101,6 +102,7 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
+        <PreloaderScreen />
         <CustomCursor />
         <SmoothScroll>{children}</SmoothScroll>
       </body>
