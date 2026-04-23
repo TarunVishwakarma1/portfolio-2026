@@ -14,16 +14,22 @@ const socials = [
   { label: "Twitter",  href: "https://x.com/Assassingod5" },
 ];
 
+const EMAIL = "hello@tarunvishwakarma.dev";
+
 export default function ContactFooter() {
   const sectionRef = useRef<HTMLElement>(null);
-  const emailRef   = useRef<HTMLAnchorElement>(null);
   const labelRef   = useRef<HTMLParagraphElement>(null);
+  const charRefs   = useRef<(HTMLSpanElement | null)[]>([]);
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
 
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reducedMotion) return; // Elements already at final state — no animation needed
+
+    if (reducedMotion) {
+      gsap.set(charRefs.current, { y: 0 });
+      return;
+    }
 
     const ctx = gsap.context(() => {
       if (labelRef.current) {
@@ -35,15 +41,15 @@ export default function ContactFooter() {
           scrollTrigger: { trigger: labelRef.current, start: "top 88%" },
         });
       }
-      if (emailRef.current) {
-        gsap.from(emailRef.current, {
-          opacity: 0,
-          y: 32,
-          duration: 0.9,
-          ease: "expo.out",
-          scrollTrigger: { trigger: emailRef.current, start: "top 88%" },
-        });
-      }
+
+      // Char-split reveal: each letter rises from below with stagger
+      gsap.to(charRefs.current, {
+        y: 0,
+        duration: 0.72,
+        ease: "expo.out",
+        stagger: 0.022,
+        scrollTrigger: { trigger: sectionRef.current, start: "top 82%" },
+      });
     }, sectionRef);
 
     return () => ctx.revert();
@@ -72,9 +78,10 @@ export default function ContactFooter() {
       </p>
 
       <Link
-        ref={emailRef}
         href="mailto:hello@tarunvishwakarma.dev"
-        className="font-display link-amber lw-trigger"
+        className="font-display link-amber"
+        data-magnetic
+        aria-label="hello@tarunvishwakarma.dev"
         style={{
           fontSize: "clamp(1.8rem, 4.5vw, 6rem)",
           fontWeight: 300,
@@ -84,7 +91,19 @@ export default function ContactFooter() {
           marginBottom: "6rem",
         }}
       >
-        <LinkWipe>hello@tarunvishwakarma.dev</LinkWipe>
+        {EMAIL.split("").map((char, i) => (
+          <span
+            key={i}
+            style={{ display: "inline-block", overflow: "hidden", verticalAlign: "bottom" }}
+          >
+            <span
+              ref={(el) => { charRefs.current[i] = el; }}
+              style={{ display: "inline-block", transform: "translateY(110%)" }}
+            >
+              {char === " " ? "\u00A0" : char}
+            </span>
+          </span>
+        ))}
       </Link>
 
       <div
@@ -117,6 +136,7 @@ export default function ContactFooter() {
               target="_blank"
               rel="noopener noreferrer"
               className="link-amber lw-trigger"
+              data-magnetic
               style={{ fontSize: "0.7rem", letterSpacing: "0.12em", textTransform: "uppercase" }}
             >
               <LinkWipe>{s.label}</LinkWipe>
