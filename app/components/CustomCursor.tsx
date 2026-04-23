@@ -18,6 +18,8 @@ export default function CustomCursor() {
     let mouseX = 0, mouseY = 0;
     let dotX   = 0, dotY  = 0;
     let ringX  = 0, ringY = 0;
+    // Smoothed velocity for ring stretch
+    let velX   = 0, velY  = 0;
     let rafId: number;
     let hovering = false;
 
@@ -37,6 +39,33 @@ export default function CustomCursor() {
       ring.classList.remove("cursor-ring-hover");
     };
 
+    // ── Magnetic hover ──────────────────────────────────────────────────────
+    const magneticEls = new Set<Element>();
+
+    const onMagneticMove = (e: MouseEvent) => {
+      const el = e.currentTarget as HTMLElement;
+      const rect = el.getBoundingClientRect();
+      const cx = rect.left + rect.width  / 2;
+      const cy = rect.top  + rect.height / 2;
+      const dx = (e.clientX - cx) * 0.38;
+      const dy = (e.clientY - cy) * 0.38;
+      el.style.transform  = `translate(${dx}px, ${dy}px)`;
+      el.style.transition = "transform 0.12s ease";
+    };
+    const onMagneticLeave = (e: MouseEvent) => {
+      const el = e.currentTarget as HTMLElement;
+      el.style.transform  = "";
+      el.style.transition = "transform 0.65s cubic-bezier(0.16, 1, 0.3, 1)";
+    };
+
+    const attachMagnetic = (el: Element) => {
+      if (magneticEls.has(el)) return;
+      el.addEventListener("mousemove",  onMagneticMove  as EventListener);
+      el.addEventListener("mouseleave", onMagneticLeave as EventListener);
+      magneticEls.add(el);
+    };
+    // ────────────────────────────────────────────────────────────────────────
+
     const attached = new Set<Element>();
     const attachToElement = (el: Element) => {
       if (attached.has(el)) return;
@@ -46,18 +75,38 @@ export default function CustomCursor() {
     };
     const attachToAll = () => {
       document.querySelectorAll("a, button").forEach(attachToElement);
+      document.querySelectorAll("[data-magnetic]").forEach(attachMagnetic);
     };
 
     const loop = () => {
       // Dot: tight follow
-      dotX  += (mouseX - dotX)  * 0.18;
-      dotY  += (mouseY - dotY)  * 0.18;
+      dotX += (mouseX - dotX) * 0.18;
+      dotY += (mouseY - dotY) * 0.18;
       // Ring: lazy follow
       ringX += (mouseX - ringX) * 0.07;
       ringY += (mouseY - ringY) * 0.07;
 
-      dot.style.transform  = `translate(calc(${dotX}px  - 50%), calc(${dotY}px  - 50%))`;
-      ring.style.transform = `translate(calc(${ringX}px - 50%), calc(${ringY}px - 50%))`;
+      // Velocity: gap between mouse and dot proxy (dot hasn't caught up = fast mouse)
+      const rawVX = mouseX - dotX;
+      const rawVY = mouseY - dotY;
+      velX += (rawVX - velX) * 0.18;
+      velY += (rawVY - velY) * 0.18;
+
+      dot.style.transform = `translate(calc(${dotX}px - 50%), calc(${dotY}px - 50%))`;
+
+      if (!hovering) {
+        // Direction-aware stretch: rotate ring along velocity vector
+        const speed   = Math.sqrt(velX * velX + velY * velY);
+        const angle   = Math.atan2(velY, velX);
+        const stretch = 1 + Math.min(speed * 0.028, 0.55);
+        const squish  = Math.max(1 / stretch, 0.55);
+        ring.style.transform =
+          `translate(calc(${ringX}px - 50%), calc(${ringY}px - 50%))` +
+          ` rotate(${angle}rad) scaleX(${stretch.toFixed(3)}) scaleY(${squish.toFixed(3)})`;
+      } else {
+        // Hovering: round ring, no stretch
+        ring.style.transform = `translate(calc(${ringX}px - 50%), calc(${ringY}px - 50%))`;
+      }
 
       rafId = requestAnimationFrame(loop);
     };
@@ -73,6 +122,8 @@ export default function CustomCursor() {
           const el = node as Element;
           if (el.matches("a, button")) attachToElement(el);
           el.querySelectorAll("a, button").forEach(attachToElement);
+          if (el.matches("[data-magnetic]")) attachMagnetic(el);
+          el.querySelectorAll("[data-magnetic]").forEach(attachMagnetic);
         });
       });
     });
@@ -88,6 +139,11 @@ export default function CustomCursor() {
         el.removeEventListener("mouseleave", onLeaveLink);
       });
       attached.clear();
+      magneticEls.forEach((el) => {
+        el.removeEventListener("mousemove",  onMagneticMove  as EventListener);
+        el.removeEventListener("mouseleave", onMagneticLeave as EventListener);
+      });
+      magneticEls.clear();
     };
   }, []);
 
