@@ -47,17 +47,17 @@ export default function HeroSection() {
     };
 
     // Wait for preloader to finish before animating hero
-    window.addEventListener("preloader:done", startAnimation, { once: true });
+    globalThis.addEventListener("preloader:done", startAnimation, { once: true });
 
     // Safety fallback — start after 4s if event never fires
     const fallback = setTimeout(() => {
-      window.removeEventListener("preloader:done", startAnimation);
+      globalThis.removeEventListener("preloader:done", startAnimation);
       startAnimation();
     }, 4000);
 
     return () => {
       clearTimeout(fallback);
-      window.removeEventListener("preloader:done", startAnimation);
+      globalThis.removeEventListener("preloader:done", startAnimation);
       ctx?.revert();
     };
   }, []);
@@ -117,7 +117,7 @@ export default function HeroSection() {
       {/* Headline — each line in overflow:hidden mask container */}
       <div style={{ marginBottom: "3.5rem" }}>
         {LINES.map((line, i) => (
-          <div key={i} style={{ overflow: "hidden", lineHeight: 0.95 }}>
+          <div key={"key_"+i} style={{ overflow: "hidden", lineHeight: 0.95 }}>
             <span
               ref={(el) => { lineRefs.current[i] = el; }}
               className="font-display"
