@@ -49,7 +49,7 @@ export default function ContactFooter() {
       ref={sectionRef}
       id="contact"
       style={{
-        padding: "8rem 6vw 4rem",
+        padding: "clamp(4rem, 10vw, 8rem) 6vw clamp(2.5rem, 5vw, 4rem)",
         borderTop: "1px solid var(--border)",
       }}
     >

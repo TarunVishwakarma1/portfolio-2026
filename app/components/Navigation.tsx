@@ -43,7 +43,9 @@ export default function Navigation() {
           left: 0,
           right: 0,
           zIndex: 200,
-          padding: scrolled ? "1rem 3rem" : "1.6rem 3rem",
+          padding: scrolled
+            ? `1rem clamp(1.2rem, 5vw, 3rem)`
+            : `1.6rem clamp(1.2rem, 5vw, 3rem)`,
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",

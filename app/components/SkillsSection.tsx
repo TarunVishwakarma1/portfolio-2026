@@ -56,7 +56,7 @@ export default function SkillsSection() {
       ref={sectionRef}
       id="skills"
       style={{
-        padding: "8rem 6vw",
+        padding: "clamp(4rem, 10vw, 8rem) 6vw",
         borderTop: "1px solid var(--border)",
       }}
     >

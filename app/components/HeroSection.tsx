@@ -144,6 +144,8 @@ export default function HeroSection() {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "flex-end",
+          flexWrap: "wrap",
+          gap: "1.5rem",
           opacity: 0,
         }}
       >
@@ -161,14 +163,7 @@ export default function HeroSection() {
         </p>
 
         {/* Scroll indicator */}
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: "0.5rem",
-          }}
-        >
+        <div className="scroll-indicator">
           <p
             style={{
               fontSize: "0.6rem",

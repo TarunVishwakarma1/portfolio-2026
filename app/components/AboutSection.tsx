@@ -94,13 +94,10 @@ export default function AboutSection() {
     <section
       ref={sectionRef}
       id="about"
+      className="about-grid"
       style={{
-        padding: "8rem 6vw",
+        padding: "clamp(4rem, 10vw, 8rem) 6vw",
         borderTop: "1px solid var(--border)",
-        display: "grid",
-        gridTemplateColumns: "1fr 1fr",
-        gap: "4rem",
-        alignItems: "start",
       }}
     >
       {/* Left: heading */}
@@ -135,7 +132,7 @@ export default function AboutSection() {
       </div>
 
       {/* Right: bio + stats */}
-      <div style={{ paddingTop: "3.5rem" }}>
+      <div>
         <div
           ref={textRef}
           style={{ display: "flex", flexDirection: "column", gap: "1.25rem", marginBottom: "2.5rem" }}
