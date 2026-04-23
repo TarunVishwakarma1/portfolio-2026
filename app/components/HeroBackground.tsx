@@ -18,7 +18,8 @@ const fragmentShaderSource = `
   uniform vec2 u_resolution;
   uniform vec2 u_image_resolution;
   uniform float u_time;
-  uniform vec2 u_mouse; // Mouse position (0 to 1)
+  uniform vec2 u_mouse;
+  uniform float u_scroll;  // parallax offset (0 = top of hero, 1 = bottom)
   uniform sampler2D u_image;
 
   varying vec2 v_uv;
@@ -70,6 +71,10 @@ const fragmentShaderSource = `
       v_uv.x * ratio.x + (1.0 - ratio.x) * 0.5,
       v_uv.y * ratio.y + (1.0 - ratio.y) * 0.5
     );
+
+    // Parallax: shift UV y upward as user scrolls, image drifts slower than page
+    // 0.4 = 40% UV shift across the full hero scroll — vivid, clearly perceptible
+    uv.y -= u_scroll * 0.4;
 
     // Mouse influence (for glass only)
     float dist = distance(v_uv, u_mouse);
@@ -172,6 +177,7 @@ export default function HeroBackground() {
     const uImageResolution = gl.getUniformLocation(program, "u_image_resolution");
     const uTime = gl.getUniformLocation(program, "u_time");
     const uMouse = gl.getUniformLocation(program, "u_mouse");
+    const uScroll = gl.getUniformLocation(program, "u_scroll");
 
     gl.useProgram(program);
 
@@ -207,23 +213,23 @@ export default function HeroBackground() {
       // Only track real mouse pointer, not touch
       if (e.pointerType === "mouse") {
         targetMouse.x = e.clientX / window.innerWidth;
-        targetMouse.y = 1.0 - e.clientY / window.innerHeight;
+        targetMouse.y = 1 - e.clientY / window.innerHeight;
       }
     };
     const handleTouchMove = (e: TouchEvent) => {
       // On mobile, move the glass towards the finger touch
       const touch = e.touches[0];
       targetMouse.x = touch.clientX / window.innerWidth;
-      targetMouse.y = 1.0 - touch.clientY / window.innerHeight;
+      targetMouse.y = 1 - touch.clientY / window.innerHeight;
     };
     const handleTouchEnd = () => {
       // Slide glass off-screen when finger lifts
       targetMouse.x = -2;
       targetMouse.y = -2;
     };
-    window.addEventListener("pointermove", handlePointerMove);
-    window.addEventListener("touchmove", handleTouchMove, { passive: true });
-    window.addEventListener("touchend", handleTouchEnd);
+    globalThis.addEventListener("pointermove", handlePointerMove);
+    globalThis.addEventListener("touchmove", handleTouchMove, { passive: true });
+    globalThis.addEventListener("touchend", handleTouchEnd);
 
     const render = (time: number) => {
       const dpr = Math.min(window.devicePixelRatio || 1, 2); // cap at 2x for performance
@@ -245,6 +251,15 @@ export default function HeroBackground() {
       gl.uniform1f(uTime, (time - startTime) * 0.001);
       gl.uniform2f(uMouse, currentMouse.x, currentMouse.y);
 
+      // Parallax scroll offset: 0 at top of hero, 1 when hero fully scrolled past.
+      // getBoundingClientRect works correctly with both Lenis (desktop) and native scroll (mobile).
+      const section = canvas.closest("section");
+      const sectionH = section?.clientHeight ?? window.innerHeight;
+      const sectionTop = section?.getBoundingClientRect().top ?? 0;
+      // -sectionTop = how many px the section has scrolled up; divide by height for 0-1
+      const scrollProg = Math.min(Math.max(-sectionTop / sectionH, 0), 1);
+      gl.uniform1f(uScroll, scrollProg);
+
       gl.clearColor(0, 0, 0, 1);
       gl.clear(gl.COLOR_BUFFER_BIT);
       gl.drawArrays(gl.TRIANGLES, 0, 6);
@@ -256,9 +271,9 @@ export default function HeroBackground() {
 
     return () => {
       cancelAnimationFrame(animationFrameId);
-      window.removeEventListener("pointermove", handlePointerMove);
-      window.removeEventListener("touchmove", handleTouchMove);
-      window.removeEventListener("touchend", handleTouchEnd);
+      globalThis.removeEventListener("pointermove", handlePointerMove);
+      globalThis.removeEventListener("touchmove", handleTouchMove);
+      globalThis.removeEventListener("touchend", handleTouchEnd);
       gl.deleteProgram(program);
       gl.deleteShader(vs);
       gl.deleteShader(fs);
@@ -271,12 +286,12 @@ export default function HeroBackground() {
     <canvas
       ref={canvasRef}
       style={{
+        display: "block",       /* removes inline gap on mobile */
         position: "absolute",
         inset: 0,
         width: "100%",
         height: "100%",
         pointerEvents: "none",
-        zIndex: -2,
       }}
     />
   );

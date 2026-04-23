@@ -19,6 +19,7 @@ export default function HeroSection() {
   const headlineRef  = useRef<HTMLDivElement>(null);
   const subRowRef    = useRef<HTMLDivElement>(null);
   const metaRowRef   = useRef<HTMLDivElement>(null);
+  const bgWrapRef    = useRef<HTMLDivElement>(null);   // parallax target for the WebGL canvas
   const lineRefs     = useRef<(HTMLSpanElement | null)[]>([]);
   const metaLeftRef  = useRef<HTMLParagraphElement>(null);
   const metaRightRef = useRef<HTMLParagraphElement>(null);
@@ -58,19 +59,29 @@ export default function HeroSection() {
           stagger: WORD_DUR * 0.2,
         }, 0.7);
 
-        // ── Scroll-out parallax (desktop only — touch devices use native scroll) ─
+        // ── Three-layer parallax ──────────────────────────────────────────────
         const isTouch = globalThis.matchMedia("(hover: none), (pointer: coarse)").matches;
-        if (!isTouch) {
-          const st = { trigger: sectionRef.current, start: "top top", end: "bottom top", scrub: true };
 
+        const st = {
+          trigger: sectionRef.current,
+          start: "top top",
+          end: "75% top",   // text gone well before hero is off screen — more dramatic
+          scrub: 0.6,
+        };
+
+        // Background parallax is now handled inside the WebGL shader via u_scroll uniform
+        // (UV y-shift as page scrolls — no DOM movement, no overflow risk)
+
+        // Text exits faster than scroll for depth contrast
+        if (!isTouch) {
           if (headlineRef.current) {
-            gsap.to(headlineRef.current, { y: -90, opacity: 0, ease: "none", scrollTrigger: st });
+            gsap.to(headlineRef.current, { y: -160, opacity: 0, ease: "none", scrollTrigger: st });
           }
           if (subRowRef.current) {
-            gsap.to(subRowRef.current, { y: -48, opacity: 0, ease: "none", scrollTrigger: st });
+            gsap.to(subRowRef.current, { y: -90, opacity: 0, ease: "none", scrollTrigger: st });
           }
           if (metaRowRef.current) {
-            gsap.to(metaRowRef.current, { y: -24, opacity: 0, ease: "none", scrollTrigger: st });
+            gsap.to(metaRowRef.current, { y: -50, opacity: 0, ease: "none", scrollTrigger: st });
           }
         }
       }, sectionRef);
@@ -102,8 +113,13 @@ export default function HeroSection() {
         padding: "clamp(3.5rem, 6vw, 6rem) clamp(1.2rem, 6vw, 6rem) clamp(2.5rem, 5vw, 5rem)",
       }}
     >
-      {/* WebGL Background Animation */}
-      <HeroBackground />
+      {/* Canvas wrapper — overflow:hidden clips to hero, parallax is in shader UVs */}
+      <div
+        ref={bgWrapRef}
+        style={{ position: "absolute", inset: 0, overflow: "hidden", zIndex: -2 }}
+      >
+        <HeroBackground />
+      </div>
       {/* Dark Overlay for better text readability */}
       <div
         style={{
@@ -195,7 +211,7 @@ export default function HeroSection() {
           >
             {SUB_WORDS.map((word, i) => (
               <span
-                key={i}
+                key={"key_"+i}
                 style={{
                   display: "inline-block",
                   overflow: "hidden",
