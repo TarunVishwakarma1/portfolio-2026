@@ -15,6 +15,11 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+::selection {
+  background: var(--accent);
+  color: var(--bg);
+}
+
 html { scroll-behavior: auto; } /* Lenis handles smooth scroll — disable native */
 
 body {
