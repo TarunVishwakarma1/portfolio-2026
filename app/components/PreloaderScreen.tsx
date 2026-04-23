@@ -6,44 +6,129 @@ import gsap from "gsap";
 
 export default function PreloaderScreen() {
   const overlayRef = useRef<HTMLDivElement>(null);
-  const counterRef = useRef<HTMLSpanElement>(null);
+  const bgRef = useRef<HTMLDivElement>(null);
+  const tContainerRef = useRef<HTMLDivElement>(null);
+  const tRef = useRef<HTMLSpanElement>(null);
+  const dashRef = useRef<HTMLSpanElement>(null);
+  const vContainerRef = useRef<HTMLDivElement>(null);
+  const vRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     const overlay = overlayRef.current;
-    const counter = counterRef.current;
-    if (!overlay || !counter) return;
+    const bg = bgRef.current;
+    const tContainer = tContainerRef.current;
+    const t = tRef.current;
+    const dash = dashRef.current;
+    const vContainer = vContainerRef.current;
+    const v = vRef.current;
+    if (!overlay || !bg || !tContainer || !t || !dash || !vContainer || !v) return;
 
-    // Lock scroll during preloader
     document.body.style.overflow = "hidden";
 
-    const obj = { val: 0 };
+    // ── SVG clip-path: evenodd hole cut into the bg overlay ──
+    const svgNS = "http://www.w3.org/2000/svg";
+    const svg = document.createElementNS(svgNS, "svg");
+    svg.style.cssText = "position:absolute;width:0;height:0;overflow:hidden";
+
+    const defs = document.createElementNS(svgNS, "defs");
+    const clipId = "preloader-hole";
+    const clip = document.createElementNS(svgNS, "clipPath");
+    clip.setAttribute("id", clipId);
+    clip.setAttribute("clipPathUnits", "userSpaceOnUse");
+
+    const path = document.createElementNS(svgNS, "path");
+    path.setAttribute("fill-rule", "evenodd");
+    path.setAttribute("clip-rule", "evenodd");
+
+    clip.appendChild(path);
+    defs.appendChild(clip);
+    svg.appendChild(defs);
+    overlay.appendChild(svg);
+
+    bg.style.clipPath = `url(#${clipId})`;
+    (bg.style as CSSStyleDeclaration & { webkitClipPath: string }).webkitClipPath = `url(#${clipId})`;
+
+    const W = window.innerWidth;
+    const H = window.innerHeight;
+
+    const buildPath = (holeW: number, holeH: number) => {
+      const outer = `M0 0H${W}V${H}H0Z`;
+      if (holeW <= 0 || holeH <= 0) return outer;
+      const x = (W - holeW) / 2;
+      const y = (H - holeH) / 2;
+      // evenodd: inner rect punches hole through outer rect
+      return `${outer}M${x} ${y}H${x + holeW}V${y + holeH}H${x}Z`;
+    };
+
+    path.setAttribute("d", buildPath(0, 0));
+
+    const hole = { w: 0, h: 0 };
     const tl = gsap.timeline();
 
-    // Count 000 → 100
-    tl.to(obj, {
-      val: 100,
-      duration: 1.8,
-      ease: "power2.inOut",
-      onUpdate() {
-        counter.textContent = String(Math.round(obj.val)).padStart(3, "0");
-      },
-    });
+    // ── Phase 1: T and V slide up from mask (0 → 0.9s) ──
+    tl.to([t, v], {
+      yPercent: 0,
+      duration: 0.9,
+      ease: "expo.out",
+      stagger: 0.07,
+    }, 0);
+    tl.to(dash, { opacity: 1, duration: 0.35, ease: "none" }, 0.28);
 
-    // Brief hold at 100
-    tl.to({}, { duration: 0.25 });
+    // ── Hold ──
+    tl.to({}, { duration: 0.45 });
 
-    // Wipe upward — polygon collapses from bottom to top
-    tl.to(overlay, {
-      clipPath: "polygon(0 0, 100% 0, 100% 0%, 0 0%)",
-      duration: 0.85,
+    // ── Phase 2: T and V split apart ──
+    tl.to(tContainer, { x: () => -W * 0.2, duration: 0.95, ease: "expo.inOut" }, ">");
+    tl.to(vContainer, { x: () =>  W * 0.2, duration: 0.95, ease: "expo.inOut" }, "<");
+    tl.to(dash, { opacity: 0, duration: 0.2, ease: "none" }, "<");
+
+    // ── Phase 3: Hole opens — small square ──
+    tl.to(hole, {
+      w: Math.min(W, H) * 0.1,
+      h: Math.min(W, H) * 0.1,
+      duration: 0.28,
+      ease: "expo.out",
+      onUpdate: () => path.setAttribute("d", buildPath(hole.w, hole.h)),
+    }, "<+0.22");
+
+    // ── Hole expands to portrait rectangle ──
+    tl.to(hole, {
+      w: W * 0.55,
+      h: H * 0.58,
+      duration: 0.72,
       ease: "expo.inOut",
-      onComplete() {
-        document.body.style.overflow = "";
-        overlay.style.display = "none";
-        window.dispatchEvent(new CustomEvent("preloader:done"));
-      },
+      onUpdate: () => path.setAttribute("d", buildPath(hole.w, hole.h)),
+    }, ">");
+
+    // ── Hole blows out to full viewport + letters exit ──
+    tl.to(hole, {
+      w: W + 8,
+      h: H + 8,
+      duration: 0.48,
+      ease: "expo.in",
+      onUpdate: () => path.setAttribute("d", buildPath(hole.w, hole.h)),
+    }, ">");
+
+    tl.to(tContainer, { x: () => -W * 1.1, duration: 0.5, ease: "expo.in" }, "<");
+    tl.to(vContainer, { x: () =>  W * 1.1, duration: 0.5, ease: "expo.in" }, "<");
+
+    // ── Done ──
+    tl.call(() => {
+      document.body.style.overflow = "";
+      overlay.style.display = "none";
+      window.dispatchEvent(new CustomEvent("preloader:done"));
     });
   }, []);
+
+  const letterStyle: React.CSSProperties = {
+    display: "block",
+    fontSize: "clamp(5rem, 16vw, 15rem)",
+    fontWeight: 300,
+    lineHeight: 0.88,
+    letterSpacing: "-0.03em",
+    color: "var(--fg)",
+    transform: "translateY(110%)",
+  };
 
   return (
     <div
@@ -51,64 +136,59 @@ export default function PreloaderScreen() {
       style={{
         position: "fixed",
         inset: 0,
-        background: "var(--bg)",
         zIndex: 9900,
         display: "flex",
-        flexDirection: "column",
-        justifyContent: "flex-end",
-        padding: "5rem 6vw",
-        clipPath: "polygon(0 0, 100% 0, 100% 100%, 0 100%)",
-        pointerEvents: "all",
+        alignItems: "center",
+        justifyContent: "center",
       }}
     >
-      {/* Large counter */}
+      {/* Dark bg — the SVG hole is cut through this */}
+      <div
+        ref={bgRef}
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "var(--bg)",
+          pointerEvents: "none",
+        }}
+      />
+
+      {/* T */}
+      <div
+        ref={tContainerRef}
+        style={{ overflow: "hidden", position: "relative", zIndex: 1 }}
+      >
+        <span ref={tRef} className="font-display" style={letterStyle}>
+          T
+        </span>
+      </div>
+
+      {/* — */}
       <span
-        ref={counterRef}
+        ref={dashRef}
         className="font-display"
         style={{
-          fontSize: "clamp(5rem, 18vw, 16rem)",
+          fontSize: "clamp(5rem, 16vw, 15rem)",
           fontWeight: 300,
           lineHeight: 0.88,
           letterSpacing: "-0.03em",
           color: "var(--fg)",
-          display: "block",
-          marginBottom: "2.5rem",
-          fontVariantNumeric: "tabular-nums",
+          position: "relative",
+          zIndex: 1,
+          opacity: 0,
         }}
       >
-        000
+        —
       </span>
 
-      {/* Bottom label row */}
+      {/* V */}
       <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-end",
-          borderTop: "1px solid var(--border)",
-          paddingTop: "1.5rem",
-        }}
+        ref={vContainerRef}
+        style={{ overflow: "hidden", position: "relative", zIndex: 1 }}
       >
-        <p
-          style={{
-            fontSize: "0.68rem",
-            letterSpacing: "0.18em",
-            color: "var(--fg-dim)",
-            textTransform: "uppercase",
-          }}
-        >
-          Tarun Vishwakarma
-        </p>
-        <p
-          style={{
-            fontSize: "0.68rem",
-            letterSpacing: "0.18em",
-            color: "var(--fg-dim)",
-            textTransform: "uppercase",
-          }}
-        >
-          Portfolio — {new Date().getFullYear()}
-        </p>
+        <span ref={vRef} className="font-display" style={letterStyle}>
+          V
+        </span>
       </div>
     </div>
   );
