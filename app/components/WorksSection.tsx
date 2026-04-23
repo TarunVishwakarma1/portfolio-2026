@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import gsap from "gsap";
 import ScrollTrigger from "gsap/ScrollTrigger";
 
@@ -13,6 +14,7 @@ const projects = [
     tags: ["Next.js", "TypeScript", "PostgreSQL", "Redis"],
     year: "2024",
     role: "Design & Engineering",
+    href: "#",
     image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=3840&q=95&auto=format&fit=crop",
   },
   {
@@ -22,6 +24,7 @@ const projects = [
     tags: ["Node.js", "Redis", "React", "WebSockets"],
     year: "2024",
     role: "Architecture & Dev",
+    href: "#",
     image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=3840&q=95&auto=format&fit=crop",
   },
   {
@@ -31,6 +34,7 @@ const projects = [
     tags: ["React", "Storybook", "TypeScript", "Radix UI"],
     year: "2023",
     role: "Engineering",
+    href: "#",
     image: "https://images.unsplash.com/photo-1558655146-d09347e92766?w=3840&q=95&auto=format&fit=crop",
   },
   {
@@ -40,6 +44,7 @@ const projects = [
     tags: ["React Native", "iOS", "Android", "Expo"],
     year: "2023",
     role: "Full Stack",
+    href: "#",
     image: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=3840&q=95&auto=format&fit=crop",
   },
 ];
@@ -57,6 +62,8 @@ export default function WorksSection() {
   const imageRefs      = useRef<(HTMLImageElement | null)[]>([]);
   const cardRefs       = useRef<(HTMLElement | null)[]>([]);
   const progressBarRef = useRef<HTMLDivElement>(null);
+  // True if the last pointer action moved enough to count as a drag (suppress click)
+  const isDragRef      = useRef(false);
   const [activeCard, setActiveCard] = useState(1);
   const [loadedImages, setLoadedImages] = useState<Record<number, boolean>>({});
 
@@ -146,7 +153,6 @@ export default function WorksSection() {
 
     let dragStartX = 0, dragStartScroll = 0, dragging = false;
     let lastScrollTarget = 0, lastMoveTime = 0, scrollVelocity = 0;
-    // Track if drag moved enough to count as intentional (suppress tap events)
     let dragDelta = 0;
 
     const isTouchPointer = (e: PointerEvent) => e.pointerType === "touch";
@@ -159,6 +165,7 @@ export default function WorksSection() {
       lastMoveTime = performance.now();
       scrollVelocity = 0;
       dragDelta = 0;
+      isDragRef.current = false;
       strip.setPointerCapture(e.pointerId);
       if (!isTouchPointer(e)) strip.style.cursor = "grabbing";
       window.__lenis?.stop();
@@ -170,6 +177,7 @@ export default function WorksSection() {
       if (!st) return;
       const dx = dragStartX - e.clientX;
       dragDelta = Math.abs(dx);
+      if (dragDelta > 6) isDragRef.current = true;
       const ratio = (st.end - st.start) / Math.abs(strip.scrollWidth - window.innerWidth) || 1;
       // Touch: slightly higher sensitivity (1.1x) to compensate for finger width
       const sensitivity = isTouchPointer(e) ? 1.1 : 1;
@@ -259,10 +267,20 @@ export default function WorksSection() {
         onDragStart={(e) => e.preventDefault()}
       >
         {projects.map((project, idx) => (
-          <article
+          <Link
             key={project.id}
+            href={project.href}
+            target="_blank"
+            rel="noopener noreferrer"
             ref={(el) => { cardRefs.current[idx] = el; }}
             className="project-card"
+            draggable={false}
+            onClick={(e) => {
+              if (isDragRef.current) {
+                isDragRef.current = false;
+                e.preventDefault();
+              }
+            }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1.5rem" }}>
               <span style={{ fontSize: "0.68rem", letterSpacing: "0.15em", color: "var(--accent)", fontFamily: "var(--font-geist-mono), monospace" }}>
@@ -329,7 +347,7 @@ export default function WorksSection() {
                 {project.year} ↗
               </span>
             </div>
-          </article>
+          </Link>
         ))}
 
         <div style={{ width: "6vw", flexShrink: 0 }} />
