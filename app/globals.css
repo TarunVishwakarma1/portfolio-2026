@@ -347,6 +347,18 @@ body::after {
   border-color: rgba(237, 234, 227, 0.35) !important;
 }
 
+/* Service card image — scale(1.35) base creates parallax overflow buffer.
+   Hover bumps to 1.5; transition is CSS-only, separate from GSAP translateY on wrapper. */
+.service-img-zoom {
+  display: block;
+  transform: scale(1.35);
+  transition: transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+.service-card-wrap:hover .service-img-zoom {
+  transform: scale(1.5);
+}
+
 /* ── About section layout ── */
 .about-grid {
   display: grid;

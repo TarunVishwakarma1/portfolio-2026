@@ -47,9 +47,10 @@ const services = [
 ];
 
 export default function ServicesSection() {
-  const sectionRef  = useRef<HTMLElement>(null);
-  const cardRefs    = useRef<(HTMLDivElement | null)[]>([]);
-  const imgRefs     = useRef<(HTMLImageElement | null)[]>([]);
+  const sectionRef    = useRef<HTMLElement>(null);
+  const cardRefs      = useRef<(HTMLDivElement | null)[]>([]);
+  // parallaxRefs: wrapper divs that GSAP drives with translateY (scrub)
+  const parallaxRefs  = useRef<(HTMLDivElement | null)[]>([]);
   const [loadedImgs, setLoadedImgs] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
@@ -57,18 +58,12 @@ export default function ServicesSection() {
 
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    if (reducedMotion) {
-      // Reset all images to neutral scale (no offset), skip all motion
-      imgRefs.current.forEach((img) => {
-        if (img) img.style.transform = `scale(${SCALE})`;
-      });
-      return;
-    }
+    if (reducedMotion) return; // CSS scale(1.35) on .service-img-zoom handles static state
 
     const ctx = gsap.context(() => {
       cardRefs.current.forEach((card, i) => {
         if (!card) return;
-        const img = imgRefs.current[i];
+        const parallax = parallaxRefs.current[i];
 
         // Card reveal: fade + lift on scroll enter
         gsap.from(card, {
@@ -80,13 +75,11 @@ export default function ServicesSection() {
           scrollTrigger: { trigger: card, start: "top 88%" },
         });
 
-        // Vertical parallax on image:
-        // Card top hits viewport bottom → img at -PARALLAX_V (shifted up)
-        // Card bottom hits viewport top → img at +PARALLAX_V (shifted down)
-        // Image lags behind scroll = classic parallax
-        if (img) {
+        // Vertical parallax — GSAP drives translateY on wrapper only.
+        // The <img> handles scale via CSS (.service-img-zoom), no transform conflict.
+        if (parallax) {
           gsap.fromTo(
-            img,
+            parallax,
             { y: -PARALLAX_V },
             {
               y: PARALLAX_V,
@@ -150,29 +143,29 @@ export default function ServicesSection() {
             {/* Shimmer skeleton */}
             <div className={`img-skeleton${loadedImgs[i] ? " loaded" : ""}`} />
 
-            {/* Parallax image */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              ref={(el) => { imgRefs.current[i] = el; }}
-              src={service.image}
-              alt={service.title}
-              draggable={false}
-              loading={i === 0 ? "eager" : "lazy"}
-              onLoad={() => setLoadedImgs((prev) => ({ ...prev, [i]: true }))}
-              style={{
-                position: "absolute",
-                inset: 0,
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-                objectPosition: "center",
-                // Initial scale creates overflow buffer for parallax translateY
-                transform: `scale(${SCALE})`,
-                willChange: "transform",
-                userSelect: "none",
-                WebkitUserSelect: "none",
-              }}
-            />
+            {/* Parallax wrapper — GSAP drives translateY here */}
+            <div
+              ref={(el) => { parallaxRefs.current[i] = el; }}
+              style={{ position: "absolute", inset: 0, willChange: "transform" }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={service.image}
+                alt={service.title}
+                draggable={false}
+                loading={i === 0 ? "eager" : "lazy"}
+                onLoad={() => setLoadedImgs((prev) => ({ ...prev, [i]: true }))}
+                className="service-img-zoom"
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  objectPosition: "center",
+                  userSelect: "none",
+                  WebkitUserSelect: "none",
+                }}
+              />
+            </div>
 
             {/* Dark gradient overlay — heavier at bottom where text lives */}
             <div
