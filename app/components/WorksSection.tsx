@@ -4,7 +4,6 @@
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import ScrollTrigger from "gsap/ScrollTrigger";
-import Draggable from "gsap/Draggable";
 
 const projects = [
   {
@@ -47,19 +46,19 @@ export default function WorksSection() {
   const labelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    gsap.registerPlugin(ScrollTrigger, Draggable);
+    gsap.registerPlugin(ScrollTrigger);
 
     const ctx = gsap.context(() => {
       const strip = stripRef.current!;
 
-      // Amount to scroll horizontally = strip total width minus one viewport
       const getScrollAmount = () => -(strip.scrollWidth - window.innerWidth);
 
-      // Pin section and map vertical scroll to horizontal movement
+      // Pin + horizontal scroll via ScrollTrigger (owns x entirely)
       gsap.to(strip, {
         x: getScrollAmount,
         ease: "none",
         scrollTrigger: {
+          id: "works-h",
           trigger: containerRef.current,
           start: "top top",
           end: () => `+=${Math.abs(getScrollAmount())}`,
@@ -70,19 +69,7 @@ export default function WorksSection() {
         },
       });
 
-      // Draggable for click-drag navigation
-      Draggable.create(strip, {
-        type: "x",
-        bounds: {
-          minX: getScrollAmount(),
-          maxX: 0,
-        },
-        onDrag() {
-          ScrollTrigger.refresh();
-        },
-      });
-
-      // Section label fade in on scroll enter
+      // Section label fade in
       if (labelRef.current) {
         gsap.from(labelRef.current, {
           opacity: 0,
@@ -97,7 +84,59 @@ export default function WorksSection() {
       }
     }, containerRef);
 
-    return () => ctx.revert();
+    // ── Pointer drag → scroll (Draggable conflicts with ScrollTrigger's x ownership)
+    // Instead: drag controls scroll position, ScrollTrigger derives x from that.
+    const strip = stripRef.current!;
+    let dragStartX = 0;
+    let dragStartScroll = 0;
+    let dragging = false;
+
+    const onPointerDown = (e: PointerEvent) => {
+      dragging = true;
+      dragStartX = e.clientX;
+      dragStartScroll = window.scrollY;
+      strip.setPointerCapture(e.pointerId);
+      strip.style.cursor = "grabbing";
+      // Prevent Lenis from interfering with the drag scroll
+      window.__lenis?.stop();
+    };
+
+    const onPointerMove = (e: PointerEvent) => {
+      if (!dragging) return;
+      const st = ScrollTrigger.getById("works-h");
+      if (!st) return;
+
+      const dx = dragStartX - e.clientX; // px dragged left (+) or right (-)
+      const scrollRange = st.end - st.start;
+      const horizTotal = Math.abs(strip.scrollWidth - window.innerWidth);
+      const ratio = horizTotal > 0 ? scrollRange / horizTotal : 1;
+
+      const target = Math.max(st.start, Math.min(st.end, dragStartScroll + dx * ratio));
+      // Set native scroll directly while Lenis is stopped
+      window.scrollTo({ top: target, behavior: "instant" as ScrollBehavior });
+    };
+
+    const onPointerUp = () => {
+      if (!dragging) return;
+      dragging = false;
+      strip.style.cursor = "grab";
+      window.__lenis?.start();
+      ScrollTrigger.refresh();
+    };
+
+    strip.addEventListener("pointerdown", onPointerDown);
+    window.addEventListener("pointermove", onPointerMove);
+    window.addEventListener("pointerup", onPointerUp);
+    window.addEventListener("pointercancel", onPointerUp);
+
+    return () => {
+      ctx.revert();
+      strip.removeEventListener("pointerdown", onPointerDown);
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerup", onPointerUp);
+      window.removeEventListener("pointercancel", onPointerUp);
+      window.__lenis?.start(); // ensure Lenis isn't stuck stopped
+    };
   }, []);
 
   return (
@@ -135,7 +174,7 @@ export default function WorksSection() {
       </div>
 
       {/* Horizontal strip */}
-      <div ref={stripRef} className="works-strip">
+      <div ref={stripRef} className="works-strip" style={{ cursor: "grab" }}>
         {projects.map((project) => (
           <article key={project.id} className="project-card">
             {/* Top row: number + role */}
