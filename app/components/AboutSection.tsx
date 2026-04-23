@@ -95,6 +95,12 @@ export default function AboutSection() {
             duration: 1.2,
             ease: "expo.out",
             onUpdate() { counter.textContent = Math.round(obj.val) + stats[i].suffix!; },
+            onComplete() {
+              // Pulse: quick scale-up then spring back
+              gsap.timeline()
+                .to(counter, { scale: 1.12, color: "var(--fg)", duration: 0.18, ease: "expo.out" })
+                .to(counter, { scale: 1, color: "inherit", duration: 0.55, ease: "expo.out" });
+            },
             scrollTrigger: { trigger: stat, start: "top 85%" },
           });
         }
