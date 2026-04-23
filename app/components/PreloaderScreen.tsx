@@ -25,6 +25,10 @@ export default function PreloaderScreen() {
 
     document.body.style.overflow = "hidden";
 
+    // ── Set initial GSAP states (avoid inline transform conflicts) ──
+    gsap.set([t, v], { yPercent: 110 });
+    gsap.set(dash, { autoAlpha: 0 });
+
     // ── SVG clip-path: evenodd hole cut into the bg overlay ──
     const svgNS = "http://www.w3.org/2000/svg";
     const svg = document.createElementNS(svgNS, "svg");
@@ -127,7 +131,7 @@ export default function PreloaderScreen() {
     lineHeight: 0.88,
     letterSpacing: "-0.03em",
     color: "var(--fg)",
-    transform: "translateY(110%)",
+    willChange: "transform",
   };
 
   return (
@@ -156,7 +160,13 @@ export default function PreloaderScreen() {
       {/* T */}
       <div
         ref={tContainerRef}
-        style={{ overflow: "hidden", position: "relative", zIndex: 1 }}
+        style={{
+          overflow: "hidden",
+          position: "relative",
+          zIndex: 1,
+          lineHeight: 0.88,
+          fontSize: "clamp(5rem, 16vw, 15rem)",
+        }}
       >
         <span ref={tRef} className="font-display" style={letterStyle}>
           T
@@ -175,7 +185,7 @@ export default function PreloaderScreen() {
           color: "var(--fg)",
           position: "relative",
           zIndex: 1,
-          opacity: 0,
+          visibility: "hidden", // GSAP autoAlpha will reveal
         }}
       >
         —
@@ -184,7 +194,13 @@ export default function PreloaderScreen() {
       {/* V */}
       <div
         ref={vContainerRef}
-        style={{ overflow: "hidden", position: "relative", zIndex: 1 }}
+        style={{
+          overflow: "hidden",
+          position: "relative",
+          zIndex: 1,
+          lineHeight: 0.88,
+          fontSize: "clamp(5rem, 16vw, 15rem)",
+        }}
       >
         <span ref={vRef} className="font-display" style={letterStyle}>
           V
