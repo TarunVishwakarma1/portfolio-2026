@@ -230,13 +230,10 @@ export default function WorksSection() {
       scrollVelocity = 0;
       dragDelta = 0;
       isDragRef.current = false;
-
-      // Desktop mouse: confirm intent immediately (no ambiguous scroll direction)
+      // Do NOT capture pointer here — capturing immediately swallows the click event.
+      // Capture only once horizontal drag intent is confirmed in onPointerMove.
       if (!isTouchPointer(e)) {
-        intentConfirmed = true;
-        strip.setPointerCapture(e.pointerId);
         strip.style.cursor = "grabbing";
-        window.__lenis?.stop();
       }
     };
 
@@ -246,16 +243,17 @@ export default function WorksSection() {
       const dx = dragStartX - e.clientX;
       const dy = e.clientY - dragStartY;
 
-      // Touch: wait until direction is clear before committing to horizontal drag
-      if (!intentConfirmed && isTouchPointer(e)) {
+      // Wait until direction is clear before committing (both touch and mouse)
+      if (!intentConfirmed) {
         const adx = Math.abs(dx);
         const ady = Math.abs(dy);
         if (adx < 8 && ady < 8) return; // still ambiguous — wait
-        if (ady > adx) { dragging = false; return; } // vertical intent — give back to browser
-        // Horizontal intent confirmed
+        if (isTouchPointer(e) && ady > adx) { dragging = false; return; } // vertical — give back to browser
+        // Horizontal intent confirmed — now capture and take over scroll
         intentConfirmed = true;
+        isDragRef.current = true;
         strip.setPointerCapture(e.pointerId);
-        strip.style.touchAction = "none"; // block native scroll while dragging
+        strip.style.touchAction = "none";
         window.__lenis?.stop();
       }
 
@@ -264,7 +262,7 @@ export default function WorksSection() {
       const st = ScrollTrigger.getById("works-h");
       if (!st) return;
       dragDelta = Math.abs(dx);
-      if (dragDelta > 6) isDragRef.current = true;
+      if (dragDelta > 8) isDragRef.current = true;
       const ratio = (st.end - st.start) / Math.abs(strip.scrollWidth - window.innerWidth) || 1;
       const sensitivity = isTouchPointer(e) ? 1.1 : 1;
       const target = Math.max(st.start, Math.min(st.end, dragStartScroll + dx * ratio * sensitivity));
@@ -282,6 +280,8 @@ export default function WorksSection() {
       intentConfirmed = false;
       strip.style.touchAction = "pan-y"; // restore vertical scroll
       if (!isTouchPointer(e)) strip.style.cursor = "grab";
+      // Cancel: no click will follow — safe to reset drag flag immediately
+      if (e.type === "pointercancel") isDragRef.current = false;
       window.__lenis?.start();
       const st = ScrollTrigger.getById("works-h");
       const inertiaThreshold = isTouchPointer(e) ? 0.02 : 0.05;
