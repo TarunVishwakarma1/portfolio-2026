@@ -34,5 +34,27 @@ export default function SectionDivider() {
     return () => ctx.revert();
   }, []);
 
-  return <hr ref={hrRef} className="section-hr" />;
+  return (
+    <div style={{ position: "relative" }}>
+      <hr ref={hrRef} className="section-hr" />
+      <span
+        aria-hidden
+        style={{
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          background: "var(--bg)",
+          padding: "0 0.85rem",
+          fontSize: "0.55rem",
+          color: "var(--accent)",
+          lineHeight: 1,
+          letterSpacing: 0,
+          pointerEvents: "none",
+        }}
+      >
+        ✦
+      </span>
+    </div>
+  );
 }

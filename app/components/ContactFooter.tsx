@@ -79,7 +79,7 @@ export default function ContactFooter() {
 
       <Link
         href="mailto:hello@tarunvishwakarma.dev"
-        className="font-display link-amber"
+        className="font-display link-email-sweep"
         data-magnetic
         aria-label="hello@tarunvishwakarma.dev"
         style={{

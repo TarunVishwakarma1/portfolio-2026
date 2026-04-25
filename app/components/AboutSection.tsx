@@ -129,8 +129,8 @@ export default function AboutSection() {
         borderTop: "1px solid var(--border)",
       }}
     >
-      {/* Left: heading */}
-      <div>
+      {/* Left: heading + monogram */}
+      <div style={{ position: "relative" }}>
         <p
           style={{
             fontSize: "0.7rem",
@@ -168,6 +168,66 @@ export default function AboutSection() {
             </span>
           ))}
         </h2>
+
+        {/* T—V interlocking monogram — Cormorant Garamond, LV-style interlock
+            Three-layer mechanic:
+            1. T full (back)
+            2. V full — sits on top of T stem in the crossing zone
+            3. T crossbar clipped — front layer, covers V at the very top
+        */}
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 185 175"
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            bottom: "-2rem",
+            right: 0,
+            width: "clamp(130px, 18vw, 200px)",
+            height: "auto",
+            color: "var(--accent)",
+            opacity: 0.11,
+            pointerEvents: "none",
+            overflow: "visible",
+          }}
+        >
+          <defs>
+            {/* Clip T to crossbar band only — sits on top of V at top of letter.
+                Cormorant Garamond at fontSize=200, baseline y=160:
+                cap top ≈ y=15, crossbar thickness ≈ 14px → y=15–29 */}
+            <clipPath id="tv-crossbar-clip">
+              <rect x="0" y="15" width="185" height="16" />
+            </clipPath>
+          </defs>
+
+          {/* 1 — T full (back layer) */}
+          <text
+            x="0" y="160"
+            fontSize="200"
+            fontWeight="300"
+            fill="currentColor"
+            style={{ fontFamily: "var(--font-cormorant), 'Cormorant Garamond', Georgia, serif" }}
+          >T</text>
+
+          {/* 2 — V full (over T — V arm wins at the stem crossing) */}
+          <text
+            x="32" y="160"
+            fontSize="200"
+            fontWeight="300"
+            fill="currentColor"
+            style={{ fontFamily: "var(--font-cormorant), 'Cormorant Garamond', Georgia, serif" }}
+          >V</text>
+
+          {/* 3 — T crossbar only (front layer — beats V at the top) */}
+          <text
+            x="0" y="160"
+            fontSize="200"
+            fontWeight="300"
+            fill="currentColor"
+            clipPath="url(#tv-crossbar-clip)"
+            style={{ fontFamily: "var(--font-cormorant), 'Cormorant Garamond', Georgia, serif" }}
+          >T</text>
+        </svg>
       </div>
 
       {/* Right: bio + stats */}
@@ -226,7 +286,8 @@ export default function AboutSection() {
         >
           {stats.map((stat, i) => (
             <div key={stat.label} ref={(el) => { statRefs.current[i] = el; }}>
-              <p className="font-display" style={{ fontSize: "2.5rem", fontWeight: 300, lineHeight: 1 }}>
+              <div style={{ width: "1.75rem", height: "2px", background: "var(--accent)", marginBottom: "0.8rem" }} />
+              <p className="font-display" style={{ fontSize: "clamp(3rem, 5vw, 4.5rem)", fontWeight: 300, lineHeight: 1 }}>
                 {stat.value !== null ? (
                   <span ref={(el) => { counterRefs.current[i] = el; }}>0{stat.suffix}</span>
                 ) : (

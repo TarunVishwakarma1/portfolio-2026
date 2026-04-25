@@ -193,6 +193,7 @@ body::after {
 }
 .menu-overlay.open .menu-footer { opacity: 1; }
 
+
 /* ── Hamburger bars ── */
 .ham-bar {
   display: block;
@@ -387,6 +388,33 @@ body::after {
 }
 .service-card-wrap:hover .service-img-zoom {
   transform: scale(1.5);
+}
+
+/* ── Email amber background sweep ── */
+/* Full amber fill sweeps from left; text inverts mid-way */
+.link-email-sweep {
+  position: relative;
+  display: inline-block;
+  text-decoration: none;
+  color: var(--fg);
+  isolation: isolate;
+}
+.link-email-sweep::before {
+  content: '';
+  position: absolute;
+  inset: -0.08em -0.05em;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: -1;
+}
+.link-email-sweep:hover::before {
+  transform: scaleX(1);
+}
+.link-email-sweep:hover {
+  color: var(--bg);
+  transition: color 0s 0.32s;
 }
 
 /* ── About section layout ── */

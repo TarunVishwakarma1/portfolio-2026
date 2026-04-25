@@ -148,6 +148,41 @@ export default function HeroSection() {
             Delhi, India
           </p>
         </div>
+
+        {/* Available for work badge — hidden on mobile */}
+        <div
+          className="hero-available-badge"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "0.5rem",
+            border: "1px solid rgba(212, 168, 83, 0.35)",
+            borderRadius: "999px",
+            padding: "0.28rem 0.8rem",
+            fontSize: "0.58rem",
+            letterSpacing: "0.14em",
+            textTransform: "uppercase",
+            color: "var(--fg-dim)",
+            background: "rgba(212, 168, 83, 0.07)",
+            backdropFilter: "blur(8px)",
+            WebkitBackdropFilter: "blur(8px)",
+          }}
+        >
+          <span
+            aria-hidden
+            style={{
+              width: "6px",
+              height: "6px",
+              borderRadius: "50%",
+              background: "var(--accent)",
+              display: "inline-block",
+              flexShrink: 0,
+              animation: "availPulse 2.4s ease-in-out infinite",
+            }}
+          />
+          Available for work
+        </div>
+
         <div style={{ overflow: "hidden" }} className="hero-meta-right">
           <p
             ref={metaRightRef}
@@ -271,12 +306,18 @@ export default function HeroSection() {
           52%  { transform: scaleY(1); transform-origin: bottom; }
           100% { transform: scaleY(0); transform-origin: bottom; }
         }
+        @keyframes availPulse {
+          0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(212, 168, 83, 0.5); }
+          50%       { opacity: 0.65; box-shadow: 0 0 0 5px rgba(212, 168, 83, 0); }
+        }
         @media (prefers-reduced-motion: reduce) {
           .scroll-indicator { display: none; }
           .scroll-indicator * { animation: none !important; }
+          .hero-available-badge span[aria-hidden] { animation: none !important; }
         }
         @media (max-width: 640px) {
           .hero-meta-right { display: none; }
+          .hero-available-badge { display: none !important; }
           .scroll-indicator { display: none; }
         }
       `}</style>

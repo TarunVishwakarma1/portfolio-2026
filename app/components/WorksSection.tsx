@@ -16,7 +16,7 @@ const projects = [
     year: "2026",
     role: "Backend & Architecture",
     href: "https://gotorrent.tarunvishwakarma.dev",
-    image: "/images/go-torrent.png",
+    image: "/images/go-torrent.webp",
   },
   {
     id: "02",
@@ -26,7 +26,7 @@ const projects = [
     year: "2026",
     role: "Database & Programming",
     href: "https://gormicx.tarunvishwakarma.dev",
-    image: "/images/gormicx.png",
+    image: "/images/gormicx.webp",
   },
   {
     id: "03",
@@ -36,23 +36,52 @@ const projects = [
     year: "2025",
     role: "UI/UX & Web",
     href: "https://stratus-keyboard.vercel.app/",
-    image: "/images/stratus-keyboard.png",
+    image: "/images/stratus-keyboard.webp",
   },
   {
     id: "04",
-    title: "W Link",
-    description: "A fast and secure web-based wallet and key generator for Wlink. Features a simple, intuitive interface for generating new wallet credentials.",
-    tags: ["Next.js", "React", "Web3", "Tailwind CSS"],
-    year: "2024",
+    title: "Matcha Explosion",
+    description: "A premium promotional landing page for an artisanal iced matcha espresso. Features a rich, dark-themed aesthetic, smooth scroll animations, and an immersive presentation of the brewing experience.",
+    tags: ["Next.js", "React", "Tailwind CSS", "Framer Motion"],
+    year: "2025",
     role: "Frontend Development",
-    href: "https://w-link-key-generator.vercel.app/",
-    image: "/images/wlink.png",
+    href: "https://matcha-explosion.vercel.app/",
+    image: "/images/matcha.webp",
   },
 ];
 
+const SCRAMBLE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#&*";
+const SCRAMBLE_DURATION = 700;
+
+function scrambleText(el: HTMLElement, text: string): () => void {
+  let rafId: number;
+  let startTime: number | null = null;
+
+  const frame = (ts: number) => {
+    if (!startTime) startTime = ts;
+    const elapsed = ts - startTime;
+    el.textContent = text
+      .split("")
+      .map((char, i) => {
+        if (char === " ") return " ";
+        if (elapsed >= (i / text.length) * SCRAMBLE_DURATION) return char;
+        return SCRAMBLE_CHARS[Math.floor(Math.random() * SCRAMBLE_CHARS.length)];
+      })
+      .join("");
+    if (elapsed < SCRAMBLE_DURATION) {
+      rafId = requestAnimationFrame(frame);
+    } else {
+      el.textContent = text;
+    }
+  };
+
+  rafId = requestAnimationFrame(frame);
+  return () => { cancelAnimationFrame(rafId); el.textContent = text; };
+}
+
 // scale(1.5) gives 25% overflow on each side.
 // At card width 900px: overflow = 225px each side.
-// Unidirectional: 0 → +PARALLAX_PX. Images start centered, shift right as cards move left.
+// Bidirectional: -PARALLAX_PX → +PARALLAX_PX. Images are centered when card is centered.
 const SCALE = 1.5;
 const PARALLAX_PX = 200; // stays within 225px overflow budget (25px safety margin)
 
@@ -106,9 +135,28 @@ export default function WorksSection() {
           onUpdate(self) {
             // Image parallax — desktop only (scrubbed transform on every frame is costly on mobile)
             if (!reducedMotion && !isTouch) {
-              const shift = self.progress * PARALLAX_PX;
-              imageRefs.current.forEach((img) => {
-                if (!img) return;
+              const windowCenter = window.innerWidth / 2;
+              const stripX = self.progress * getScrollAmount();
+              
+              imageRefs.current.forEach((img, i) => {
+                const card = cardRefs.current[i];
+                if (!img || !card) return;
+                
+                // Calculate absolute left offset without forcing layout thrashing
+                let offsetLeft = card.offsetLeft;
+                let parent = card.offsetParent as HTMLElement;
+                while (parent && parent !== containerRef.current && parent !== document.body) {
+                  offsetLeft += parent.offsetLeft;
+                  parent = parent.offsetParent as HTMLElement;
+                }
+                
+                const cardCenter = offsetLeft + card.offsetWidth / 2;
+                const currentCardCenter = cardCenter + stripX;
+                const distance = currentCardCenter - windowCenter;
+                
+                // Center the image when the card is perfectly centered on screen
+                const shift = -(distance / windowCenter) * PARALLAX_PX;
+                
                 img.style.transform = `translateX(${shift}px) scale(${SCALE})`;
               });
             }
@@ -259,6 +307,36 @@ export default function WorksSection() {
       window.removeEventListener("pointerup", onPointerUp);
       window.removeEventListener("pointercancel", onPointerUp);
       window.__lenis?.start();
+    };
+  }, []);
+
+  // Text scramble on hover — desktop only
+  useEffect(() => {
+    if (window.matchMedia("(hover: none), (pointer: coarse)").matches) return;
+
+    const cleanups = new Map<number, () => void>();
+
+    const handlers: Array<{ card: HTMLElement; onEnter: () => void } | null> = cardRefs.current.map((card, idx) => {
+      if (!card) return null;
+      const h2 = card.querySelector("h2") as HTMLElement | null;
+      if (!h2) return null;
+      const text = projects[idx].title;
+
+      const onEnter = () => {
+        cleanups.get(idx)?.();
+        cleanups.set(idx, scrambleText(h2, text));
+      };
+
+      card.addEventListener("mouseenter", onEnter);
+      return { card, onEnter };
+    });
+
+    return () => {
+      handlers.forEach((h, idx) => {
+        if (!h) return;
+        h.card.removeEventListener("mouseenter", h.onEnter);
+        cleanups.get(idx)?.();
+      });
     };
   }, []);
 

@@ -108,8 +108,11 @@ export default function Navigation() {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          transition: "padding 0.4s cubic-bezier(0.16,1,0.3,1)",
+          transition: "padding 0.4s cubic-bezier(0.16,1,0.3,1), background 0.4s, backdrop-filter 0.4s",
           borderBottom: scrolled ? "1px solid var(--border)" : "1px solid transparent",
+          background: scrolled ? "rgba(6,6,6,0.72)" : "transparent",
+          backdropFilter: scrolled ? "blur(18px)" : "none",
+          WebkitBackdropFilter: scrolled ? "blur(18px)" : "none",
         }}
       >
         <Link

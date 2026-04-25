@@ -4,29 +4,37 @@
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import ScrollTrigger from "gsap/ScrollTrigger";
+import LinkWipe from "./LinkWipe";
 
 const skills = [
   {
+    id: "01",
     category: "Frontend",
     items: ["Next.js", "React", "TypeScript", "Tailwind CSS", "Three.js"],
   },
   {
+    id: "02",
     category: "Backend",
-    items: ["Node.js", "Go", "PostgreSQL", "Redis", "REST / GraphQL"],
+    items: ["Java", "Node.js", "Go", "PostgreSQL", "Redis", "REST / GraphQL"],
   },
   {
+    id: "03",
     category: "Infrastructure",
     items: ["Vercel", "AWS", "Docker", "GitHub Actions", "Nginx"],
   },
   {
+    id: "04",
     category: "Tools",
     items: ["Figma", "GSAP", "Git", "Prisma", "Storybook"],
   },
 ];
 
 export default function SkillsSection() {
-  const sectionRef = useRef<HTMLElement>(null);
-  const rowRefs    = useRef<(HTMLDivElement | null)[]>([]);
+  const sectionRef  = useRef<HTMLElement>(null);
+  const rowRefs     = useRef<(HTMLDivElement | null)[]>([]);
+  const lineRefs    = useRef<(HTMLDivElement | null)[]>([]);
+  const catRefs     = useRef<(HTMLSpanElement | null)[]>([]);
+  const tagGroupRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
@@ -34,38 +42,56 @@ export default function SkillsSection() {
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     if (reducedMotion) {
-      gsap.set(rowRefs.current, { opacity: 1, y: 0 });
-      rowRefs.current.forEach((row) => {
-        if (!row) return;
-        gsap.set(row.querySelectorAll("li"), { opacity: 1, y: 0 });
-      });
+      lineRefs.current.forEach(el => { if (el) el.style.transform = "scaleX(1)"; });
+      catRefs.current.forEach(el => { if (el) el.style.transform = "translateY(0)"; });
+      tagGroupRefs.current.forEach(el => { if (el) el.style.opacity = "1"; });
       return;
     }
 
     const ctx = gsap.context(() => {
       rowRefs.current.forEach((row, i) => {
         if (!row) return;
-        const items = row.querySelectorAll("li");
-        // Set li items invisible before their stagger fires
-        gsap.set(items, { opacity: 0, y: 10 });
+        const line     = lineRefs.current[i];
+        const cat      = catRefs.current[i];
+        const tagGroup = tagGroupRefs.current[i];
 
-        gsap.to(row, {
-          opacity: 1,
-          y: 0,
-          duration: 0.65,
-          ease: "expo.out",
-          delay: i * 0.07,
-          scrollTrigger: { trigger: row, start: "top 88%" },
-          onComplete: () => {
-            gsap.to(items, {
-              opacity: 1,
-              y: 0,
-              duration: 0.45,
+        // Border line draws in from left
+        if (line) {
+          gsap.fromTo(line,
+            { scaleX: 0 },
+            {
+              scaleX: 1,
+              duration: 1.1,
               ease: "expo.out",
-              stagger: 0.07,
-            });
-          },
-        });
+              scrollTrigger: { trigger: row, start: "top 88%" },
+            }
+          );
+        }
+
+        // Category name rises up
+        if (cat) {
+          gsap.to(cat, {
+            y: 0,
+            duration: 0.85,
+            ease: "expo.out",
+            delay: 0.1,
+            scrollTrigger: { trigger: row, start: "top 88%" },
+          });
+        }
+
+        // Tags fade in with stagger
+        if (tagGroup) {
+          const tags = tagGroup.querySelectorAll("span");
+          gsap.to(tags, {
+            opacity: 1,
+            y: 0,
+            duration: 0.55,
+            ease: "expo.out",
+            stagger: 0.07,
+            delay: 0.2,
+            scrollTrigger: { trigger: row, start: "top 88%" },
+          });
+        }
       });
     }, sectionRef);
 
@@ -81,6 +107,7 @@ export default function SkillsSection() {
         borderTop: "1px solid var(--border)",
       }}
     >
+      {/* Section label */}
       <p
         style={{
           fontSize: "0.7rem",
@@ -93,60 +120,134 @@ export default function SkillsSection() {
         Stack
       </p>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-          gap: "3rem 4rem",
-        }}
-      >
-        {skills.map((group, i) => (
+      {/* Skill rows */}
+      <div>
+        {skills.map((skill, i) => (
           <div
-            key={group.category}
+            key={skill.id}
             ref={(el) => { rowRefs.current[i] = el; }}
-            className="skills-row"
+            className="skills-accordion-row"
+            style={{ position: "relative", paddingTop: "2rem", paddingBottom: "2rem" }}
           >
-            <p
+            {/* Animated top border */}
+            <div
+              ref={(el) => { lineRefs.current[i] = el; }}
               style={{
-                fontSize: "0.65rem",
-                letterSpacing: "0.18em",
-                color: "var(--accent)",
-                textTransform: "uppercase",
-                marginBottom: "1.25rem",
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                height: "1px",
+                background: "var(--border)",
+                transformOrigin: "left",
+                transform: "scaleX(0)",
               }}
+            />
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "3rem minmax(0, 1fr) minmax(0, 1fr)",
+                alignItems: "center",
+                gap: "2rem",
+              }}
+              className="skills-row-inner"
             >
-              {group.category}
-            </p>
-            <ul style={{ listStyle: "none" }}>
-              {group.items.map((item) => (
-                <li
-                  key={item}
+              {/* Index */}
+              <span
+                style={{
+                  fontSize: "0.62rem",
+                  letterSpacing: "0.15em",
+                  color: "var(--accent)",
+                  fontFamily: "var(--font-geist-mono), monospace",
+                  flexShrink: 0,
+                }}
+              >
+                {skill.id}
+              </span>
+
+              {/* Category name — display font, large */}
+              <div style={{ overflow: "hidden" }}>
+                <span
+                  ref={(el) => { catRefs.current[i] = el; }}
+                  className="font-display skills-cat-name lw-trigger"
                   style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.75rem",
-                    padding: "0.6rem 0",
-                    borderBottom: "1px solid var(--border)",
-                    fontSize: "0.85rem",
-                    color: "var(--fg-dim)",
+                    display: "block",
+                    fontSize: "clamp(2rem, 4vw, 3.5rem)",
+                    fontWeight: 300,
+                    lineHeight: 1,
+                    letterSpacing: "-0.01em",
+                    transform: "translateY(110%)",
+                    transition: "color 0.3s ease",
                   }}
                 >
+                  <LinkWipe>{skill.category}</LinkWipe>
+                </span>
+              </div>
+
+              {/* Skill tags — right-aligned */}
+              <div
+                ref={(el) => { tagGroupRefs.current[i] = el; }}
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: "0.5rem",
+                  justifyContent: "flex-end",
+                }}
+                className="skills-tag-group"
+              >
+                {skill.items.map((item) => (
                   <span
+                    key={item}
+                    className="skill-item-tag lw-trigger"
                     style={{
-                      width: "4px",
-                      height: "4px",
-                      borderRadius: "50%",
-                      background: "var(--accent)",
-                      flexShrink: 0,
+                      fontSize: "0.62rem",
+                      letterSpacing: "0.12em",
+                      textTransform: "uppercase",
+                      border: "1px solid var(--border)",
+                      padding: "0.35rem 0.85rem",
+                      color: "var(--fg-dim)",
+                      opacity: 0,
+                      transform: "translateY(8px)",
+                      transition: "border-color 0.25s ease, color 0.25s ease",
+                      cursor: "default",
                     }}
-                  />
-                  {item}
-                </li>
-              ))}
-            </ul>
+                  >
+                    <LinkWipe>{item}</LinkWipe>
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
         ))}
+
+        {/* Final border */}
+        <div style={{ height: "1px", background: "var(--border)" }} />
       </div>
+
+      <style>{`
+        .skills-accordion-row {
+          cursor: default;
+        }
+        .skills-accordion-row:hover .skills-cat-name {
+          color: var(--accent);
+        }
+        .skills-accordion-row:hover .skill-item-tag {
+          border-color: rgba(212, 168, 83, 0.4);
+          color: var(--fg);
+        }
+        @media (max-width: 768px) {
+          .skills-row-inner {
+            grid-template-columns: 2rem 1fr !important;
+            grid-template-rows: auto auto;
+          }
+          .skills-tag-group {
+            grid-column: 2 / -1;
+            justify-content: flex-start !important;
+            max-width: 100% !important;
+          }
+        }
+      `}</style>
     </section>
   );
 }
