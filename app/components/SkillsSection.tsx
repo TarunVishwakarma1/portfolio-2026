@@ -39,7 +39,7 @@ export default function SkillsSection() {
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
 
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const reducedMotion = globalThis.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     if (reducedMotion) {
       lineRefs.current.forEach(el => { if (el) el.style.transform = "scaleX(1)"; });
