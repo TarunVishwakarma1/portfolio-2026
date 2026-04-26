@@ -30,6 +30,16 @@ const projects = [
   },
   {
     id: "03",
+    title: "Rusticx",
+    description: "A blazingly fast, asynchronous Object-Relational Mapper (ORM) built in Rust. Leverages Tokio to provide non-blocking database interactions with strict type safety and minimal overhead.",
+    tags: ["Rust", "Tokio"],
+    year: "2025",
+    role: "Backend & Architecture",
+    href: "https://rusticx.tarunvishwakarma.dev/",
+    image: "/images/rusticx.png",
+  },
+  {
+    id: "04",
     title: "Stratus Keyboard",
     description: "A premium e-commerce landing page for a high-end mechanical keyboard. Features a sleek, modern design, detailed technical specifications, and a pre-order waitlist system.",
     tags: ["React", "Storybook", "TypeScript", "Radix UI"],
@@ -39,7 +49,7 @@ const projects = [
     image: "/images/stratus-keyboard.webp",
   },
   {
-    id: "04",
+    id: "05",
     title: "Matcha Explosion",
     description: "A premium promotional landing page for an artisanal iced matcha espresso. Features a rich, dark-themed aesthetic, smooth scroll animations, and an immersive presentation of the brewing experience.",
     tags: ["Next.js", "React", "Tailwind CSS", "Framer Motion"],
@@ -48,10 +58,11 @@ const projects = [
     href: "https://matcha-explosion.vercel.app/",
     image: "/images/matcha.webp",
   },
+  
 ];
 
 const SCRAMBLE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#&*";
-const SCRAMBLE_DURATION = 700;
+const SCRAMBLE_DURATION = 500;
 
 function scrambleText(el: HTMLElement, text: string): () => void {
   let rafId: number;
@@ -398,7 +409,7 @@ export default function WorksSection() {
               }
             }}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1.5rem" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1rem" }}>
               <span style={{ fontSize: "0.68rem", letterSpacing: "0.15em", color: "var(--accent)", fontFamily: "var(--font-geist-mono), monospace" }}>
                 {project.id}
               </span>
@@ -410,7 +421,7 @@ export default function WorksSection() {
             {/* overflow:hidden clips the scale(1.5) overflow — no position:absolute needed */}
             <div
               className="project-card-img-wrap"
-              style={{ width: "100%", height: "320px", marginBottom: "1.75rem", background: "var(--fg-muted)" }}
+              style={{ width: "100%", height: "260px", marginBottom: "1.25rem", background: "var(--fg-muted)" }}
             >
               <div className={`img-skeleton${loadedImages[idx] ? " loaded" : ""}`} />
               <Image
@@ -438,13 +449,13 @@ export default function WorksSection() {
             <div style={{ overflow: "hidden" }}>
               <h2
                 className="font-display"
-                style={{ fontSize: "clamp(2.5rem, 5vw, 5rem)", fontWeight: 300, lineHeight: 0.93, letterSpacing: "-0.02em", marginBottom: "1.25rem" }}
+                style={{ fontSize: "clamp(2rem, 4.5vw, 4rem)", fontWeight: 300, lineHeight: 0.93, letterSpacing: "-0.02em", marginBottom: "1rem" }}
               >
                 {project.title}
               </h2>
             </div>
 
-            <p style={{ fontSize: "0.82rem", color: "var(--fg-dim)", lineHeight: 1.7, maxWidth: "480px", marginBottom: "2rem", flex: 1 }}>
+            <p style={{ fontSize: "0.82rem", color: "var(--fg-dim)", lineHeight: 1.6, maxWidth: "480px", marginBottom: "1.25rem", flex: 1 }}>
               {project.description}
             </p>
 
