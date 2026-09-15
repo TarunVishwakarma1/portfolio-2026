@@ -17,7 +17,7 @@ const HEADING_LINES = [
   { text: "code.", italic: true },
 ];
 
-const PARA1_WORDS = "I'm Tarun — a senior full stack developer who builds software that performs under pressure. Five years of shipping products that users actually use, for teams that can't afford to settle for less.".split(" ");
+const PARA1_WORDS = "I'm Tarun — a senior full stack developer who builds software that performs under pressure. Four years of shipping products that users actually use, for teams that can't afford to settle for less.".split(" ");
 const PARA2_WORDS = "I work across the full stack: Next.js on the front, Node.js or Go on the back, deployed on edge infrastructure built to scale. Clean code, fast iterations, zero excuses.".split(" ");
 
 const WORD_DUR = 0.7;
@@ -179,14 +179,15 @@ export default function AboutSection() {
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 185 175"
           aria-hidden="true"
+          className="about-monogram"
           style={{
             position: "absolute",
-            bottom: "-2rem",
-            right: 0,
-            width: "clamp(130px, 18vw, 200px)",
+            bottom: "-3rem",
+            left: 0,
+            width: "clamp(170px, 24vw, 300px)",
             height: "auto",
             color: "var(--accent)",
-            opacity: 0.11,
+            opacity: 0.09,
             pointerEvents: "none",
             overflow: "visible",
           }}

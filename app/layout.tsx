@@ -41,6 +41,7 @@ export const metadata: Metadata = {
     "React Developer",
     "Node.js",
     "Go Developer",
+    "Rust Developer",
     "TypeScript",
     "JavaScript",
     "Web Development",
@@ -137,7 +138,7 @@ const jsonLd = [
       addressCountry: "IN",
     },
     knowsAbout: [
-      "Next.js", "React", "TypeScript", "JavaScript", "Node.js", "Go",
+      "Next.js", "React", "TypeScript", "JavaScript", "Node.js", "Go", "Rust",
       "PostgreSQL", "Redis", "Docker", "AWS", "Vercel", "Three.js", "GSAP",
     ],
     sameAs: [

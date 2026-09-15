@@ -90,6 +90,14 @@ export default function Navigation() {
     return () => { document.body.style.overflow = ""; };
   }, [isOpen]);
 
+  // Escape closes the overlay — it was mouse-only before.
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setIsOpen(false); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [isOpen]);
+
   const close = () => setIsOpen(false);
 
   return (

@@ -7,6 +7,7 @@ import ServicesSection from "./components/ServicesSection";
 import AboutSection from "./components/AboutSection";
 import ContactFooter from "./components/ContactFooter";
 import SectionDivider from "./components/SectionDivider";
+import Marquee from "./components/Marquee";
 
 export default function Home() {
   return (
@@ -16,7 +17,7 @@ export default function Home() {
         <HeroSection />
         <SectionDivider />
         <WorksSection />
-        <SectionDivider />
+        <Marquee />
         <SkillsSection />
         <SectionDivider />
         <ServicesSection />

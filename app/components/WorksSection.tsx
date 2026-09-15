@@ -10,6 +10,26 @@ import Image from "next/image";
 const projects = [
   {
     id: "01",
+    title: "TrueLabel",
+    description: "An open-source barcode scanner backed by a crowdsourced, community-verified nutrition database. Rust/Axum API, Next.js web, native iOS and Android clients — it reads the back of the packet in plain language.",
+    tags: ["Rust", "Axum", "Next.js", "SwiftUI", "Kotlin"],
+    year: "2026",
+    role: "Full Stack & Mobile",
+    href: "https://github.com/TarunVishwakarma1/true-lable",
+    image: "/images/truelabel.webp",
+  },
+  {
+    id: "02",
+    title: "netspd",
+    description: "A network speed test for the terminal, drawn on a braille-canvas hypercar tachometer. Ping, jitter, bufferbloat grading and Prometheus output across four providers. Shipped on crates.io and Homebrew.",
+    tags: ["Rust", "Ratatui", "TUI", "CLI"],
+    year: "2026",
+    role: "CLI & Systems",
+    href: "https://github.com/TarunVishwakarma1/netspd",
+    image: "/images/netspd.webp",
+  },
+  {
+    id: "03",
     title: "GoTorrent",
     description: "A fast, lightweight cross-platform BitTorrent desktop client built with Go and Fyne. Features drag-and-drop, torrent preview, and robust lifecycle management.",
     tags: ["GoLang", "Fyne"],
@@ -19,7 +39,7 @@ const projects = [
     image: "/images/go-torrent.webp",
   },
   {
-    id: "02",
+    id: "04",
     title: "Gormicx",
     description: "Blazingly fast, minimal-footprint ORM for Go. Supports both SQL and NoSQL databases through a unified, pluggable driver interface.",
     tags: ["GoLang", "SQL"],
@@ -29,17 +49,17 @@ const projects = [
     image: "/images/gormicx.webp",
   },
   {
-    id: "03",
+    id: "05",
     title: "Rusticx",
     description: "A blazingly fast, asynchronous Object-Relational Mapper (ORM) built in Rust. Leverages Tokio to provide non-blocking database interactions with strict type safety and minimal overhead.",
     tags: ["Rust", "Tokio"],
     year: "2025",
     role: "Backend & Architecture",
     href: "https://rusticx.tarunvishwakarma.dev/",
-    image: "/images/rusticx.png",
+    image: "/images/rusticx.webp",
   },
   {
-    id: "04",
+    id: "06",
     title: "Stratus Keyboard",
     description: "A premium e-commerce landing page for a high-end mechanical keyboard. Features a sleek, modern design, detailed technical specifications, and a pre-order waitlist system.",
     tags: ["React", "Storybook", "TypeScript", "Radix UI"],
@@ -49,7 +69,7 @@ const projects = [
     image: "/images/stratus-keyboard.webp",
   },
   {
-    id: "05",
+    id: "07",
     title: "Matcha Explosion",
     description: "A premium promotional landing page for an artisanal iced matcha espresso. Features a rich, dark-themed aesthetic, smooth scroll animations, and an immersive presentation of the brewing experience.",
     tags: ["Next.js", "React", "Tailwind CSS", "Framer Motion"],
@@ -90,11 +110,11 @@ function scrambleText(el: HTMLElement, text: string): () => void {
   return () => { cancelAnimationFrame(rafId); el.textContent = text; };
 }
 
-// scale(1.5) gives 25% overflow on each side.
-// At card width 900px: overflow = 225px each side.
+// scale(1.28) gives 14% overflow on each side.
+// At card width 900px: overflow = 126px each side.
 // Bidirectional: -PARALLAX_PX → +PARALLAX_PX. Images are centered when card is centered.
-const SCALE = 1.5;
-const PARALLAX_PX = 200; // stays within 225px overflow budget (25px safety margin)
+const SCALE = 1.28;
+const PARALLAX_PX = 110; // stays within 126px overflow budget (16px safety margin)
 
 export default function WorksSection() {
   const containerRef   = useRef<HTMLElement>(null);
@@ -131,6 +151,12 @@ export default function WorksSection() {
       const strip = stripRef.current!;
       const getScrollAmount = () => -(strip.scrollWidth - window.innerWidth);
 
+      // Speed lean: the strip skews into the scroll direction and springs back
+      // when motion stops. Desktop only — it reads as jitter on touch momentum.
+      const skewTo = (!reducedMotion && !isTouch)
+        ? gsap.quickTo(strip, "skewX", { duration: 0.6, ease: "power3" })
+        : null;
+
       gsap.to(strip, {
         x: getScrollAmount,
         ease: "none",
@@ -144,6 +170,8 @@ export default function WorksSection() {
           anticipatePin: 1,
           invalidateOnRefresh: true,
           onUpdate(self) {
+            skewTo?.(gsap.utils.clamp(-5, 5, self.getVelocity() / -420));
+
             // Image parallax — desktop only (scrubbed transform on every frame is costly on mobile)
             if (!reducedMotion && !isTouch) {
               const windowCenter = window.innerWidth / 2;
@@ -355,7 +383,7 @@ export default function WorksSection() {
     <section ref={containerRef} id="work" style={{ overflow: "hidden" }}>
       <div
         ref={labelRef}
-        style={{ padding: "5rem 6vw 2.5rem" }}
+        style={{ padding: "clamp(3rem, 7vh, 5rem) 6vw clamp(1.25rem, 3vh, 2.5rem)" }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "1.25rem" }}>
           <p style={{ fontSize: "0.7rem", letterSpacing: "0.18em", color: "var(--fg-dim)", textTransform: "uppercase" }}>
@@ -401,6 +429,7 @@ export default function WorksSection() {
             rel="noopener noreferrer"
             ref={(el) => { cardRefs.current[idx] = el; }}
             className="project-card"
+            data-cursor="View"
             draggable={false}
             onClick={(e) => {
               if (isDragRef.current) {
@@ -421,7 +450,7 @@ export default function WorksSection() {
             {/* overflow:hidden clips the scale(1.5) overflow — no position:absolute needed */}
             <div
               className="project-card-img-wrap"
-              style={{ width: "100%", height: "260px", marginBottom: "1.25rem", background: "var(--fg-muted)" }}
+              style={{ marginBottom: "1.25rem", background: "var(--fg-muted)" }}
             >
               <div className={`img-skeleton${loadedImages[idx] ? " loaded" : ""}`} />
               <Image
@@ -439,10 +468,6 @@ export default function WorksSection() {
                   willChange: "transform",
                 }}
               />
-              <div className="project-card-cta">
-                <span className="project-card-cta-label">View Project</span>
-                <span className="project-card-cta-arrow">↗</span>
-              </div>
             </div>
 
             {/* overflow:hidden clips the translateY reveal */}

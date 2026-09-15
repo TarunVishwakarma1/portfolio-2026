@@ -81,6 +81,7 @@ export default function ContactFooter() {
         href="mailto:hello@tarunvishwakarma.dev"
         className="font-display link-email-sweep"
         data-magnetic
+        data-cursor="Write"
         aria-label="hello@tarunvishwakarma.dev"
         style={{
           fontSize: "clamp(1.8rem, 4.5vw, 6rem)",

@@ -4,16 +4,18 @@
 import { useEffect, useRef } from "react";
 
 export default function CustomCursor() {
-  const dotRef  = useRef<HTMLDivElement>(null);
-  const ringRef = useRef<HTMLDivElement>(null);
+  const dotRef   = useRef<HTMLDivElement>(null);
+  const ringRef  = useRef<HTMLDivElement>(null);
+  const labelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // No custom cursor on touch / mobile devices
     if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
 
-    const dot  = dotRef.current;
-    const ring = ringRef.current;
-    if (!dot || !ring) return;
+    const dot   = dotRef.current;
+    const ring  = ringRef.current;
+    const label = labelRef.current;
+    if (!dot || !ring || !label) return;
 
     let mouseX = 0, mouseY = 0;
     let dotX   = 0, dotY  = 0;
@@ -21,22 +23,29 @@ export default function CustomCursor() {
     // Smoothed velocity for ring stretch
     let velX   = 0, velY  = 0;
     let rafId: number;
-    let hovering = false;
 
     const onMove = (e: MouseEvent) => {
       mouseX = e.clientX;
       mouseY = e.clientY;
     };
 
-    const onEnterLink = () => {
-      hovering = true;
+    // Contextual label: nearest [data-cursor] ancestor names what a click does.
+    const onEnterLink = (e: Event) => {
       dot.classList.add("cursor-hover");
       ring.classList.add("cursor-ring-hover");
+
+      const text = (e.currentTarget as Element)
+        .closest<HTMLElement>("[data-cursor]")?.dataset.cursor;
+      if (text) {
+        label.textContent = text;
+        label.classList.add("visible");
+        ring.classList.add("cursor-ring-labelled");
+      }
     };
     const onLeaveLink = () => {
-      hovering = false;
       dot.classList.remove("cursor-hover");
-      ring.classList.remove("cursor-ring-hover");
+      ring.classList.remove("cursor-ring-hover", "cursor-ring-labelled");
+      label.classList.remove("visible");
     };
 
     // ── Magnetic hover ──────────────────────────────────────────────────────
@@ -103,6 +112,9 @@ export default function CustomCursor() {
         `translate(calc(${ringX}px - 50%), calc(${ringY}px - 50%))` +
         ` rotate(${angle}rad) scaleX(${stretch.toFixed(3)}) scaleY(${squish.toFixed(3)})`;
 
+      label.style.transform =
+        `translate(calc(${ringX}px - 50%), calc(${ringY}px - 50%))`;
+
       rafId = requestAnimationFrame(loop);
     };
 
@@ -144,8 +156,9 @@ export default function CustomCursor() {
 
   return (
     <>
-      <div ref={dotRef}  className="cursor-dot" />
-      <div ref={ringRef} className="cursor-ring" />
+      <div ref={dotRef}   className="cursor-dot" />
+      <div ref={ringRef}  className="cursor-ring" />
+      <div ref={labelRef} className="cursor-label" aria-hidden />
     </>
   );
 }
